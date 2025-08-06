@@ -4,7 +4,7 @@ This contains everything you need to run your audio AI chat bot assistant app lo
 
 For development of AI software full final product, get in contact with SDH Global.
 
-**SDH Global**: A community of software engineers helping startups succeed. Learn more at [sdh.global](https://www.sdh.global).
+**SDH Global**: A community of software engineers helping startups succeed. 
 
 For support, get in touch at [www.SDH.global](https://www.SDH.global).
 
