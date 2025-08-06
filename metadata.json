@@ -1,0 +1,8 @@
+{
+  "name": " SDH Global AI Assistant",
+  "description": "An interactive AI consultant from SDH Global to help with your software development needs.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "prompt": ""
+}
