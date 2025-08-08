@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import SettingsTab from './SettingsTab'
 import AgentsTab from './AgentsTab'
+import TestTab from './TestTab'
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('settings')
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const tabs = [
     { id: 'settings', name: 'Настройки', icon: '⚙️' },
     { id: 'agents', name: 'Агенты', icon: '🤖' },
+    { id: 'test', name: 'Тест', icon: '🧪' },
   ]
 
   return (
@@ -71,6 +73,7 @@ export default function Dashboard() {
           <main className="flex-1">
             {activeTab === 'settings' && <SettingsTab />}
             {activeTab === 'agents' && <AgentsTab />}
+            {activeTab === 'test' && <TestTab />}
           </main>
         </div>
       </div>
