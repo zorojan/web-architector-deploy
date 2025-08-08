@@ -1,27 +1,35 @@
 {
   "name": "sdh-global-ai-assistant",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "SDH Global AI Assistant - Multi-frontend architecture",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:admin\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev", 
+    "dev:admin": "cd admin-panel && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:admin",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:admin": "cd admin-panel && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../admin-panel && npm install",
+    "clean": "rimraf */node_modules */dist */build */.next",
+    "lint": "eslint . --ext .ts,.tsx --ignore-path .gitignore",
+    "type-check": "tsc --noEmit"
   },
-  "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@google/genai": "^1.4.0",
-    "eventemitter3": "^5.0.1",
-    "lodash": "^4.17.21",
-    "vite": "^6.3.5",
-    "classnames": "^2.5.1",
-    "zustand": "^5.0.5",
-    "path": "^0.12.7"
-  },
+  "workspaces": [
+    "frontend",
+    "backend", 
+    "admin-panel",
+    "shared"
+  ],
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
-  }
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  },
+  "keywords": ["ai", "assistant", "gemini", "react", "express", "nextjs"],
+  "author": "SDH Global",
+  "license": "MIT"
 }
