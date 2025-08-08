@@ -38,12 +38,23 @@ function ControlTray({ children }: ControlTrayProps) {
   const { showAgentEdit, showUserConfig } = useUI();
   const { client, connected, connect, disconnect } = useLiveAPIContext();
 
-  // Stop the current agent if the user is editing the agent or user config
+  // Debug logging - только при изменении состояния
   useEffect(() => {
-    if (showAgentEdit || showUserConfig) {
-      if (connected) disconnect();
+    console.log('🎮 ControlTray Debug:', {
+      connected,
+      showAgentEdit,
+      showUserConfig,
+      muted,
+      client: !!client
+    });
+  }, [connected, showAgentEdit, muted, client]);
+
+  // Stop the current agent if the user is editing the agent (но НЕ при настройках пользователя)
+  useEffect(() => {
+    if (showAgentEdit && connected) {
+      disconnect();
     }
-  }, [showUserConfig, showAgentEdit, connected, disconnect]);
+  }, [showAgentEdit, connected, disconnect]);
 
   useEffect(() => {
     if (!connected && connectButtonRef.current) {
@@ -88,10 +99,24 @@ function ControlTray({ children }: ControlTrayProps) {
 
       <div className={cn('connection-container', { connected })}>
         <div className="connection-button-container">
-          <button
+                    <button
             ref={connectButtonRef}
             className={cn('action-button connect-toggle', { connected })}
-            onClick={connected ? disconnect : connect}
+            onClick={() => {
+              console.log('🎮 ControlTray: Play button clicked', { 
+                connected, 
+                hasConnect: typeof connect === 'function',
+                hasDisconnect: typeof disconnect === 'function'
+              });
+              if (connected) {
+                console.log('🔌 Disconnecting...');
+                disconnect();
+              } else {
+                console.log('🔌 Connecting...');
+                connect();
+              }
+            }}
+            disabled={!client}
           >
             <span className="material-symbols-outlined filled">
               {connected ? 'pause' : 'play_arrow'}

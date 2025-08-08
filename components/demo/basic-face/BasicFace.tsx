@@ -35,6 +35,16 @@ export default function BasicFace({
   const tiltAngle = useTilt({ maxAngle: 3, speed: 0.05, isActive });
   const hoverOffset = useHover({ amplitude: 5, frequency: 0.2 });
 
+  // Debug logging - только при изменении ключевых параметров
+  useEffect(() => {
+    console.log('😀 BasicFace debug:', {
+      color,
+      avatarUrl,
+      isActive,
+      hasAvatarImage: !!avatarImage
+    });
+  }, [color, avatarUrl, isActive, avatarImage]);
+
   // Load avatar image
   useEffect(() => {
     if (avatarUrl) {

@@ -18,7 +18,7 @@ export default function KeynoteCompanion() {
 
   // Set the configuration for the Live API
   useEffect(() => {
-    setConfig({
+    const config = {
       responseModalities: [Modality.AUDIO],
       speechConfig: {
         voiceConfig: {
@@ -32,7 +32,15 @@ export default function KeynoteCompanion() {
           },
         ],
       },
+    };
+    
+    console.log('🎯 KeynoteCompanion setting config:', {
+      agent: current,
+      config,
+      systemInstructions: createSystemInstructions(current, user)
     });
+    
+    setConfig(config);
   }, [setConfig, user, current]);
 
   // Initiate the session when the Live API connection is established

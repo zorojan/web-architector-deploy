@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import { useLiveAPIContext } from '@/contexts/LiveAPIContext';
-import { Agent, createNewAgent } from '@/lib/presets/agents';
+import { Agent } from '@/lib/presets/agents';
 import { useAgent, useUI, useUser } from '@/lib/state';
 import c from 'classnames';
 import { useEffect, useState } from 'react';
 
 export default function Header() {
-  const { showUserConfig, setShowUserConfig, setShowAgentEdit } = useUI();
+  const { showUserConfig, setShowUserConfig } = useUI();
   const { name } = useUser();
-  const { current, setCurrent, availablePresets, availablePersonal, addAgent } =
+  const { current, setCurrent, availablePresets, availablePersonal } =
     useAgent();
   const { disconnect } = useLiveAPIContext();
 
@@ -25,12 +25,6 @@ export default function Header() {
   function changeAgent(agent: Agent | string) {
     disconnect();
     setCurrent(agent);
-  }
-
-  function addNewAssistant() {
-    disconnect();
-    addAgent(createNewAgent());
-    setShowAgentEdit(true);
   }
 
   return (
@@ -54,13 +48,6 @@ export default function Header() {
               {current.name}
               <span className="icon">arrow_drop_down</span>
             </h1>
-          </button>
-
-          <button
-            onClick={() => setShowAgentEdit(true)}
-            className="button small"
-          >
-            <span className="icon">edit</span>
           </button>
         </div>
 
@@ -117,9 +104,6 @@ export default function Header() {
                 )}
               </ul>
             }
-            <button className="newRoomButton" onClick={addNewAssistant}>
-              <span className="icon">add</span>New Assistant
-            </button>
           </div>
         </div>
       </div>

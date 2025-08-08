@@ -53,6 +53,15 @@ export function useLiveApi({
   const [connected, setConnected] = useState(false);
   const [config, setConfig] = useState<LiveConnectConfig>({});
 
+  // Debug config changes
+  useEffect(() => {
+    console.log('⚙️ useLiveApi config changed:', {
+      hasConfig: !!config,
+      configKeys: config ? Object.keys(config) : [],
+      config: config
+    });
+  }, [config]);
+
   // register audio for streaming server -> speakers
   useEffect(() => {
     if (!audioStreamerRef.current) {
@@ -109,11 +118,29 @@ export function useLiveApi({
   }, [client]);
 
   const connect = useCallback(async () => {
+    console.log('🔌 useLiveApi connect called:', {
+      hasConfig: !!config,
+      configKeys: config ? Object.keys(config) : [],
+      connected
+    });
+    
     if (!config) {
-      throw new Error('config has not been set');
+      const error = new Error('config has not been set');
+      console.error('❌ Connect failed - no config:', error);
+      throw error;
     }
-    client.disconnect();
-    await client.connect(config);
+    
+    try {
+      console.log('📤 Disconnecting existing connection...');
+      client.disconnect();
+      
+      console.log('📥 Connecting with config:', config);
+      await client.connect(config);
+      console.log('✅ Connection successful');
+    } catch (error) {
+      console.error('❌ Connection failed:', error);
+      throw error;
+    }
   }, [client, setConnected, config]);
 
   const disconnect = useCallback(async () => {

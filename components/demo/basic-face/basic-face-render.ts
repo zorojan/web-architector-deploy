@@ -7,6 +7,7 @@ type BasicFaceProps = {
   mouthScale: number;
   eyeScale: number;
   color?: string;
+  avatarImage?: HTMLImageElement | null;
 };
 
 const eye = (
@@ -30,6 +31,7 @@ export function renderBasicFace(props: BasicFaceProps) {
     eyeScale: eyesOpenness,
     mouthScale: mouthOpenness,
     color,
+    avatarImage,
   } = props;
   const { width, height } = ctx.canvas;
 
@@ -41,6 +43,17 @@ export function renderBasicFace(props: BasicFaceProps) {
   ctx.beginPath();
   ctx.arc(width / 2, height / 2, width / 2 - 20, 0, Math.PI * 2);
   ctx.fill();
+
+  // If there's an avatar image, draw it instead of the basic face
+  if (avatarImage) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, width / 2 - 20, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(avatarImage, 0, 0, width, height);
+    ctx.restore();
+    return;
+  }
 
   const eyesCenter = [width / 2, height / 2.425];
   const eyesOffset = width / 15;
