@@ -21,8 +21,7 @@ export default function UserSettings() {
     setName(userName);
     setInfo(userInfo);
     
-    // Show success message
-    alert(`Settings saved!\nName: ${userName}\nInfo: ${userInfo}`);
+  // alert удалён по требованию
     
     // Close modal
     setShowUserConfig(false);
@@ -37,18 +36,7 @@ export default function UserSettings() {
           and product companies succeed.
         </p>
 
-        <div style={{ 
-          background: '#e8f5e8', 
-          padding: '10px', 
-          margin: '10px 0', 
-          borderRadius: '5px',
-          border: '1px solid #9CCF31'
-        }}>
-          <strong>🔧 Debug Info:</strong><br/>
-          Current Name: "{name}"<br/>
-          Current Info: "{info}"<br/>
-          Functions Available: {typeof setName === 'function' ? '✅' : '❌'}
-        </div>
+  {/* Debug Info удалён по требованию */}
 
         <form onSubmit={handleSubmit}>
           <p>

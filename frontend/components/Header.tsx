@@ -56,39 +56,11 @@ export default function Header() {
             </h1>
           </button>
 
-          <button
-            onClick={() => setShowAgentEdit(true)}
-            className="button small"
-          >
-            <span className="icon">edit</span>
-          </button>
+          {/* Кнопка edit удалена по требованию */}
         </div>
 
         <div className={c('roomList', { active: showRoomList })}>
-          <div>
-            <h3>Preset Assistants</h3>
-            <ul>
-              {availablePresets
-                .filter(agent => agent.id !== current.id)
-                .map(agent => (
-                  <li
-                    key={agent.name}
-                    className={c({ active: agent.id === current.id })}
-                  >
-                    <button onClick={() => changeAgent(agent)}>
-                      {agent.avatarUrl && (
-                        <img
-                          src={agent.avatarUrl}
-                          alt={agent.name}
-                          className="agent-list-avatar"
-                        />
-                      )}
-                      {agent.name}
-                    </button>
-                  </li>
-                ))}
-            </ul>
-          </div>
+          {/* Preset Assistants удалён по требованию */}
 
           <div>
             <h3>Your Assistants</h3>
@@ -117,9 +89,7 @@ export default function Header() {
                 )}
               </ul>
             }
-            <button className="newRoomButton" onClick={addNewAssistant}>
-              <span className="icon">add</span>New Assistant
-            </button>
+            {/* Кнопка New Assistant удалена по требованию */}
           </div>
         </div>
       </div>
