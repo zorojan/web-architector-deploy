@@ -1,0 +1,16 @@
+{
+  "name": "sdh-ai-client-example",
+  "version": "1.0.0",
+  "description": "SDH Global AI Assistant API Client Example",
+  "main": "client.js",
+  "scripts": {
+    "start": "node client.js",
+    "test": "node test-all.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "keywords": ["sdh", "ai", "assistant", "api", "client"],
+  "author": "SDH Global Software Development Hub",
+  "license": "MIT"
+}
