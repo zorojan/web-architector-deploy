@@ -110,7 +110,13 @@ const insertDefaultData = async (): Promise<void> => {
     {
       key: 'default_model',
       value: 'gemini-2.5-flash-preview-native-audio-dialog',
-      description: 'Default Gemini model for conversations',
+      description: 'Default Gemini model for voice conversations',
+      type: 'string'
+    },
+    {
+      key: 'message_dialog_model',
+      value: 'gemini-1.5-flash',
+      description: 'Gemini model for text message conversations',
       type: 'string'
     },
     {

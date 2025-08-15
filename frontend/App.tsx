@@ -24,8 +24,11 @@ import KeynoteCompanion from './components/demo/keynote-companion/KeynoteCompani
 import Header from './components/Header';
 import UserSettings from './components/UserSettings';
 import DataInitializer from './components/DataInitializer';
+import { ModeSelector, InteractionMode } from './components/ModeSelector';
+import { TextChat } from './components/TextChat';
 import { LiveAPIProvider } from './contexts/LiveAPIContext';
-import { useUI } from './lib/state';
+import { useUI, useAgent } from './lib/state';
+import { api } from './lib/api-client';
 import { useState, useEffect } from 'react';
 
 // API клиент для получения данных
@@ -49,10 +52,19 @@ async function fetchApiKey() {
  * Manages video streaming state and provides controls for webcam/screen capture.
  */
 function App() {
-  const { showUserConfig } = useUI();
+  const { showUserConfig, isFirstTime, setShowUserConfig, setIsFirstTime } = useUI();
+  const { current, setCurrent, setAvailableAgents } = useAgent();
   const [apiKey, setApiKey] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>('audio');
+
+  // Show user settings modal on first time
+  useEffect(() => {
+    if (isFirstTime && !loading && !error) {
+      setShowUserConfig(true);
+    }
+  }, [isFirstTime, loading, error, setShowUserConfig]);
 
   useEffect(() => {
     const loadApiKey = async () => {
@@ -76,6 +88,40 @@ function App() {
 
     loadApiKey();
   }, []);
+
+  // Load agents from database when API key is available
+  useEffect(() => {
+    const loadAgentsFromDatabase = async () => {
+      try {
+        const agentsList = await api.getAgents();
+        console.log('Loaded agents from database:', agentsList);
+        
+        // Convert database agents to frontend agent format
+        const formattedAgents = agentsList.map(dbAgent => ({
+          id: dbAgent.id,
+          name: dbAgent.name,
+          personality: dbAgent.personality,
+          bodyColor: dbAgent.body_color || '#9CCF31',
+          voice: (dbAgent.voice as any) || 'Orus',
+          avatarUrl: dbAgent.avatar_url
+        }));
+        
+        // Set agents in state
+        setAvailableAgents(formattedAgents);
+        
+      } catch (err) {
+        console.error('Failed to load agents from database:', err);
+      }
+    };
+
+    if (apiKey) {
+      loadAgentsFromDatabase();
+    }
+  }, [apiKey, setAvailableAgents]);
+
+  const handleSendMessage = async (message: string, agentId: string) => {
+    return await api.sendMessage(agentId, message);
+  };
 
   // Show loading state while fetching API key
   if (loading) {
@@ -122,13 +168,28 @@ function App() {
         <LiveAPIProvider apiKey={apiKey}>
           <ErrorScreen />
           <Header />
-          {showUserConfig && <UserSettings />}
+          {showUserConfig && (
+            <UserSettings 
+              selectedMode={interactionMode}
+              onModeChange={setInteractionMode}
+              isFirstTime={isFirstTime}
+            />
+          )}
+          
           <div className="streaming-console">
             <main>
               <div className="main-app-area">
-                <KeynoteCompanion />
+                {interactionMode === 'audio' ? (
+                  <KeynoteCompanion />
+                ) : (
+                  <TextChat
+                    agentId={current.id}
+                    agentName={current.name}
+                    onSendMessage={handleSendMessage}
+                  />
+                )}
               </div>
-              <ControlTray></ControlTray>
+              {interactionMode === 'audio' && <ControlTray />}
             </main>
           </div>
         </LiveAPIProvider>

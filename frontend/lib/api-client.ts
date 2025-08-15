@@ -62,6 +62,22 @@ export const api = {
   healthCheck: async (): Promise<{ status: string; timestamp: string }> => {
     const response = await apiClient.get('/health')
     return response.data
+  },
+
+  // Send text message to agent
+  sendMessage: async (agentId: string, message: string): Promise<string> => {
+    try {
+      const response = await apiClient.post(`/agents/${agentId}/message`, {
+        message: message
+      })
+      return response.data.response
+    } catch (error) {
+      // Re-throw the error with the server's error message if available
+      if (axios.isAxiosError(error) && error.response?.data?.error) {
+        throw new Error(`${error.response.status}: ${error.response.data.error}`)
+      }
+      throw error
+    }
   }
 }
 

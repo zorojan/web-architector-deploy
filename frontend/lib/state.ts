@@ -48,15 +48,17 @@ export const useAgent = create<{
   availablePersonal: Agent[];
   setCurrent: (agent: Agent | string) => void;
   addAgent: (agent: Agent) => void;
+  setAvailableAgents: (agents: Agent[]) => void;
   update: (agentId: string, adjustments: Partial<Agent>) => void;
 }>(set => ({
-  current: StartupConsultant,
-  availablePresets: [
-    StartupConsultant,
-    AIAdvisor,
-    TechnicalArchitect,
-    DevOpsSpecialist,
-  ],
+  current: {
+    id: 'loading',
+    name: 'Loading...',
+    personality: 'Loading agents from database...',
+    bodyColor: '#9CCF31',
+    voice: 'Orus'
+  },
+  availablePresets: [], // Remove static presets, will be loaded from database
   availablePersonal: [],
 
   addAgent: (agent: Agent) => {
@@ -65,6 +67,15 @@ export const useAgent = create<{
       current: agent,
     }));
   },
+  
+  setAvailableAgents: (agents: Agent[]) => {
+    set({
+      availablePresets: agents, // Store database agents as presets
+      availablePersonal: [], // Clear personal agents to avoid duplication
+      current: agents.length > 0 ? agents[0] : { id: 'loading', name: 'Loading...', personality: 'Loading agents from database...', bodyColor: '#9CCF31', voice: 'Orus' }
+    });
+  },
+  
   setCurrent: (agent: Agent | string) =>
     set({ current: typeof agent === 'string' ? getAgentById(agent) : agent }),
   update: (agentId: string, adjustments: Partial<Agent>) => {
@@ -91,9 +102,22 @@ export const useUI = create<{
   setShowUserConfig: (show: boolean) => void;
   showAgentEdit: boolean;
   setShowAgentEdit: (show: boolean) => void;
-}>(set => ({
-  showUserConfig: false,
-  setShowUserConfig: (show: boolean) => set({ showUserConfig: show }),
-  showAgentEdit: false,
-  setShowAgentEdit: (show: boolean) => set({ showAgentEdit: show }),
-}));
+  isFirstTime: boolean;
+  setIsFirstTime: (isFirst: boolean) => void;
+}>(set => {
+  // Check localStorage for first time status
+  const savedFirstTime = localStorage.getItem('sdh-ai-first-time');
+  const isFirstTime = savedFirstTime === null ? true : JSON.parse(savedFirstTime);
+
+  return {
+    showUserConfig: false,
+    setShowUserConfig: (show: boolean) => set({ showUserConfig: show }),
+    showAgentEdit: false,
+    setShowAgentEdit: (show: boolean) => set({ showAgentEdit: show }),
+    isFirstTime,
+    setIsFirstTime: (isFirst: boolean) => {
+      localStorage.setItem('sdh-ai-first-time', JSON.stringify(isFirst));
+      set({ isFirstTime: isFirst });
+    },
+  };
+});

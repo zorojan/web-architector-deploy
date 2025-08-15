@@ -9,7 +9,7 @@ import c from 'classnames';
 import { useEffect, useState } from 'react';
 
 export default function Header() {
-  const { showUserConfig, setShowUserConfig, setShowAgentEdit } = useUI();
+  const { showUserConfig, setShowUserConfig, setShowAgentEdit, setIsFirstTime } = useUI();
   const { name } = useUser();
   const { current, setCurrent, availablePresets, availablePersonal, addAgent } =
     useAgent();
@@ -60,40 +60,46 @@ export default function Header() {
         </div>
 
         <div className={c('roomList', { active: showRoomList })}>
-          {/* Preset Assistants удалён по требованию */}
-
           <div>
             <h3>Your Assistants</h3>
-            {
+            {/* Show database agents (stored in availablePresets) */}
+            {availablePresets.length > 0 ? (
               <ul>
-                {availablePersonal.length ? (
-                  availablePersonal.map(agent => (
-                    <li
-                      key={agent.id}
-                      className={c({ active: agent.id === current.id })}
-                    >
-                      <button onClick={() => changeAgent(agent)}>
-                        {agent.avatarUrl && (
-                          <img
-                            src={agent.avatarUrl}
-                            alt={agent.name}
-                            className="agent-list-avatar"
-                          />
-                        )}
-                        {agent.name}
-                      </button>
-                    </li>
-                  ))
-                ) : (
-                  <p>None yet.</p>
-                )}
+                {availablePresets.map(agent => (
+                  <li
+                    key={agent.id}
+                    className={c({ active: agent.id === current.id })}
+                  >
+                    <button onClick={() => changeAgent(agent)}>
+                      {agent.avatarUrl && (
+                        <img
+                          src={agent.avatarUrl}
+                          alt={agent.name}
+                          className="agent-list-avatar"
+                        />
+                      )}
+                      {agent.name}
+                    </button>
+                  </li>
+                ))}
               </ul>
-            }
-            {/* Кнопка New Assistant удалена по требованию */}
+            ) : (
+              <p>Loading agents from database...</p>
+            )}
           </div>
         </div>
       </div>
       <div className="header-actions">
+        <button
+          onClick={() => {
+            setIsFirstTime(true);
+            setShowUserConfig(true);
+          }}
+          className="button secondary"
+          style={{ marginRight: '1rem', fontSize: '0.8rem' }}
+        >
+          🔄 Setup
+        </button>
         <a
           href="https://sdh.global/contact/"
           target="_blank"

@@ -33,7 +33,9 @@ export type UseLiveApiResults = {
 
   connect: () => Promise<void>;
   disconnect: () => void;
+  reset: () => void;
   connected: boolean;
+  lastError: string | null;
 
   volume: number;
 };
@@ -52,6 +54,7 @@ export function useLiveApi({
   const [volume, setVolume] = useState(0);
   const [connected, setConnected] = useState(false);
   const [config, setConfig] = useState<LiveConnectConfig>({});
+  const [lastError, setLastError] = useState<string | null>(null);
 
   // register audio for streaming server -> speakers
   useEffect(() => {
@@ -78,9 +81,37 @@ export function useLiveApi({
       setConnected(true);
     };
 
-    const onClose = () => {
+    const onClose = (event?: any) => {
       console.log('🔒 useLiveAPI: onClose event fired - connection closed');
+      console.log('🔒 useLiveAPI: Close event details:', {
+        code: event?.code,
+        reason: event?.reason,
+        wasClean: event?.wasClean
+      });
+      
+      // Handle specific error codes
+      if (event?.code === 1011) {
+        const errorMsg = 'QUOTA EXCEEDED: Your Google Gemini API key has exceeded its quota limits. Check Google Cloud Console billing and quotas.';
+        setLastError(errorMsg);
+        console.error('❌ QUOTA EXCEEDED: Your Google Gemini API key has exceeded its quota limits.');
+        console.error('💡 Solutions:');
+        console.error('   • Check your Google Cloud Console billing and quotas');
+        console.error('   • Wait for quota reset (usually daily for free tier)');
+        console.error('   • Enable billing for higher quotas');
+        console.error('   • Generate a new API key with a different project');
+        console.error('🔗 Google Cloud Console: https://console.cloud.google.com/');
+      } else if (event?.code && event.code !== 1000) {
+        setLastError(`Connection closed with error code ${event.code}: ${event.reason}`);
+        console.warn(`⚠️ Connection closed with error code ${event.code}: ${event.reason}`);
+      } else {
+        setLastError(null); // Normal close
+      }
+      
       setConnected(false);
+    };
+
+    const onError = (error?: any) => {
+      console.error('❌ useLiveAPI: onError event fired:', error);
     };
 
     const stopAudioStreamer = () => {
@@ -98,6 +129,7 @@ export function useLiveApi({
     // Bind event listeners
     client.on('open', onOpen);
     client.on('close', onClose);
+    client.on('error', onError);
     client.on('interrupted', stopAudioStreamer);
     client.on('audio', onAudio);
 
@@ -105,6 +137,7 @@ export function useLiveApi({
       // Clean up event listeners
       client.off('open', onOpen);
       client.off('close', onClose);
+      client.off('error', onError);
       client.off('interrupted', stopAudioStreamer);
       client.off('audio', onAudio);
     };
@@ -118,26 +151,100 @@ export function useLiveApi({
       throw new Error('config has not been set');
     }
     
+    // Prevent multiple concurrent connections
+    if (connected) {
+      console.log('⚠️ useLiveAPI: Already connected, skipping');
+      return;
+    }
+    
+    // Clear any previous errors
+    setLastError(null);
+    
     try {
-      console.log('🔌 useLiveAPI: Disconnecting first...');
-      client.disconnect();
+      // First ensure we're fully disconnected
+      console.log('🔌 useLiveAPI: Ensuring clean disconnect...');
+      if (client) {
+        client.disconnect();
+        // Wait for disconnect to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       
       console.log('🔌 useLiveAPI: Starting connection with config:', config);
-      await client.connect(config);
+      const success = await client.connect(config);
       
-      console.log('✅ useLiveAPI: client.connect() completed successfully');
-      // Устанавливаем connected сразу после успешного подключения
-      setConnected(true);
+      if (success) {
+        console.log('✅ useLiveAPI: client.connect() completed successfully');
+        // Add a timeout to check if connection stays open
+        setTimeout(() => {
+          if (!connected) {
+            console.warn('⚠️ useLiveAPI: Connection completed but onOpen not fired after 2 seconds');
+          }
+        }, 2000);
+      } else {
+        console.error('❌ useLiveAPI: client.connect() returned false');
+        throw new Error('Connection failed');
+      }
     } catch (error) {
       console.error('❌ useLiveAPI: Connection failed:', error);
+      setConnected(false);
       throw error;
     }
-  }, [client, config]);
+  }, [client, config, connected]);
 
   const disconnect = useCallback(async () => {
-    client.disconnect();
-    setConnected(false);
-  }, [setConnected, client]);
+    console.log('🔌 useLiveAPI: Disconnecting...');
+    try {
+      if (client) {
+        client.disconnect();
+      }
+      setConnected(false);
+      setVolume(0);
+    } catch (error) {
+      console.error('❌ useLiveAPI: Disconnect error:', error);
+      setConnected(false);
+    }
+  }, [client]);
+
+  const reset = useCallback(() => {
+    console.log('🔄 useLiveAPI: Resetting connection...');
+    try {
+      // Force disconnect
+      if (client) {
+        client.disconnect();
+      }
+      
+      setConnected(false);
+      setVolume(0);
+      setLastError(null);
+      
+      // Stop audio streamer
+      if (audioStreamerRef.current) {
+        audioStreamerRef.current.stop();
+        audioStreamerRef.current = null;
+      }
+      
+      // Reinitialize audio context after a delay
+      setTimeout(() => {
+        audioContext({ id: 'audio-out' }).then((audioCtx: AudioContext) => {
+          audioStreamerRef.current = new AudioStreamer(audioCtx);
+          audioStreamerRef.current
+            .addWorklet<any>('vumeter-out', VolMeterWorket, (ev: any) => {
+              setVolume(ev.data.volume);
+            })
+            .then(() => {
+              console.log('✅ useLiveAPI: Audio worklet reinitialized');
+            })
+            .catch(err => {
+              console.error('❌ useLiveAPI: Error reinitializing worklet:', err);
+            });
+        });
+      }, 1000);
+      
+      console.log('✅ useLiveAPI: Reset completed');
+    } catch (error) {
+      console.error('❌ useLiveAPI: Reset error:', error);
+    }
+  }, [client]);
 
   return {
     client,
@@ -146,6 +253,8 @@ export function useLiveApi({
     connect,
     connected,
     disconnect,
+    reset,
+    lastError,
     volume,
   };
 }

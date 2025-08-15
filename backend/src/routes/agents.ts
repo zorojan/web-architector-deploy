@@ -2,6 +2,7 @@ import express from 'express';
 import { getDatabase } from '../database/init';
 import { authenticateToken } from './auth';
 import { promisify } from 'util';
+import axios from 'axios';
 
 const router = express.Router();
 
@@ -182,6 +183,99 @@ router.delete('/:id', authenticateToken, async (req: any, res: express.Response)
   } catch (error) {
     console.error('Delete agent error:', error);
     res.status(500).json({ error: 'Failed to delete agent' });
+  }
+});
+
+// Send message to agent (text chat)
+router.post('/:id/message', async (req: any, res: express.Response) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const db = getDatabase();
+    const get = promisify(db.get.bind(db)) as any;
+
+    // Get agent details
+    const agent = await get('SELECT * FROM agents WHERE id = ? AND is_active = 1', [id]) as any;
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+
+    // Get API key and message dialog model
+    const apiKeySetting = await get('SELECT value FROM settings WHERE key = ?', ['gemini_api_key']) as any;
+    const modelSetting = await get('SELECT value FROM settings WHERE key = ?', ['message_dialog_model']) as any;
+
+    if (!apiKeySetting || !apiKeySetting.value) {
+      return res.status(500).json({ error: 'Gemini API key not configured' });
+    }
+
+    const apiKey = apiKeySetting.value;
+    const model = modelSetting?.value || 'gemini-1.5-flash';
+
+    // Create system prompt
+    const systemPrompt = agent.system_prompt || `You are ${agent.name}. ${agent.personality}`;
+
+    // Call Gemini API
+    const geminiResponse = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        contents: [
+          {
+            parts: [
+              { text: systemPrompt },
+              { text: `User: ${message.trim()}` }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.8,
+          topK: 40,
+          maxOutputTokens: 1024,
+        }
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    const response = geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+
+    res.json({ response });
+  } catch (error) {
+    console.error('Send message error:', error);
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status || 500;
+      
+      // Handle specific error cases
+      if (status === 503) {
+        return res.status(503).json({ 
+          error: 'API service is temporarily unavailable. This usually means the API quota has been exceeded or the service is down. Please try again later or check your API key configuration.' 
+        });
+      } else if (status === 429) {
+        return res.status(429).json({ 
+          error: 'Too many requests. Please wait a moment before trying again.' 
+        });
+      } else if (status === 401) {
+        return res.status(401).json({ 
+          error: 'Invalid API key. Please check your Gemini API key configuration in the admin panel.' 
+        });
+      } else if (status === 400) {
+        return res.status(400).json({ 
+          error: 'Invalid request. Please check your message and try again.' 
+        });
+      }
+      
+      const message = error.response?.data?.error?.message || 'Failed to get response from AI';
+      return res.status(status).json({ error: message });
+    }
+    res.status(500).json({ error: 'Failed to send message' });
   }
 });
 

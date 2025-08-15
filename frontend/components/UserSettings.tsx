@@ -4,10 +4,19 @@
 */
 import Modal from './Modal';
 import { useUI, useUser } from '@/lib/state';
+import { ModeSelector, InteractionMode } from './ModeSelector';
+import { useState } from 'react';
 
-export default function UserSettings() {
+interface UserSettingsProps {
+  selectedMode?: InteractionMode;
+  onModeChange?: (mode: InteractionMode) => void;
+  isFirstTime?: boolean;
+}
+
+export default function UserSettings({ selectedMode = 'audio', onModeChange, isFirstTime = false }: UserSettingsProps) {
   const { name, info, setName, setInfo } = useUser();
-  const { setShowUserConfig } = useUI();
+  const { setShowUserConfig, setIsFirstTime } = useUI();
+  const [currentMode, setCurrentMode] = useState<InteractionMode>(selectedMode);
 
   function handleSubmit(e: any) {
     e.preventDefault();
@@ -18,13 +27,25 @@ export default function UserSettings() {
     const userInfo = formData.get('info') as string;
     
     // Update state
-    setName(userName);
-    setInfo(userInfo);
+    setName(userName || 'Гость');
+    setInfo(userInfo || 'Пользователь SDH Global AI Assistant');
     
-  // alert удалён по требованию
+    // Update mode if provided
+    if (onModeChange) {
+      onModeChange(currentMode);
+    }
+    
+    // Mark as not first time if this is initial setup
+    if (isFirstTime) {
+      setIsFirstTime(false);
+    }
     
     // Close modal
     setShowUserConfig(false);
+  }
+
+  function handleModeChange(mode: InteractionMode) {
+    setCurrentMode(mode);
   }
 
   return (
@@ -35,8 +56,6 @@ export default function UserSettings() {
           global community of software engineers, dedicated to helping startups
           and product companies succeed.
         </p>
-
-  {/* Debug Info удалён по требованию */}
 
         <form onSubmit={handleSubmit}>
           <p>
@@ -75,6 +94,14 @@ export default function UserSettings() {
                 borderRadius: '4px',
                 resize: 'vertical'
               }}
+            />
+          </div>
+
+          {/* Mode Selection */}
+          <div style={{ margin: '20px 0' }}>
+            <ModeSelector 
+              mode={currentMode} 
+              onModeChange={handleModeChange} 
             />
           </div>
 
