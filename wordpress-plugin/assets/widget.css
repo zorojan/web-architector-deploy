@@ -1,0 +1,194 @@
+/* SDH AI Assistant Widget - WordPress Plugin Styles */
+
+/* Контейнер виджета */
+.sdh-ai-widget-container {
+    position: relative;
+    z-index: 9999;
+}
+
+/* Стили для iframe виджета */
+.sdh-ai-widget-iframe {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.sdh-ai-widget-iframe:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+}
+
+/* Шорткод виджета */
+.sdh-ai-widget-shortcode {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.sdh-ai-widget-shortcode .sdh-ai-widget-iframe {
+    max-width: 100%;
+    height: auto;
+    min-height: 400px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .sdh-ai-widget-iframe {
+        width: calc(100vw - 40px) !important;
+        max-width: 400px !important;
+        height: 500px !important;
+        border-radius: 8px;
+    }
+    
+    .sdh-ai-widget-shortcode {
+        margin: 15px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .sdh-ai-widget-iframe {
+        width: calc(100vw - 20px) !important;
+        height: 450px !important;
+        border-radius: 6px;
+    }
+    
+    /* Скрытие на очень маленьких экранах если нужно */
+    .sdh-ai-widget-mobile-hidden {
+        display: none !important;
+    }
+}
+
+/* Стили для плавающего виджета */
+#sdh-ai-floating-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 400px;
+    height: 600px;
+    z-index: 9999;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+}
+
+#sdh-ai-floating-widget.minimized {
+    height: 60px;
+    width: 300px;
+    cursor: pointer;
+}
+
+#sdh-ai-floating-widget.position-left {
+    right: auto;
+    left: 20px;
+}
+
+/* Анимации появления */
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#sdh-ai-floating-widget {
+    animation: slideInUp 0.4s ease-out;
+}
+
+/* Темная тема */
+body.dark-theme #sdh-ai-floating-widget {
+    background: #1a1a1a;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Загрузочный спиннер */
+.sdh-ai-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(79, 127, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #4F7FFF;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Уведомления */
+.sdh-ai-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    max-width: 300px;
+    animation: slideInDown 0.3s ease-out;
+}
+
+.sdh-ai-notification.success {
+    border-left: 4px solid #28a745;
+}
+
+.sdh-ai-notification.error {
+    border-left: 4px solid #dc3545;
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Интеграция с популярными темами WordPress */
+
+/* Twenty Twenty-Four */
+.wp-site-blocks .sdh-ai-widget-shortcode {
+    margin: var(--wp--preset--spacing--50) 0;
+}
+
+/* Twenty Twenty-Three */
+.is-layout-constrained .sdh-ai-widget-shortcode {
+    margin: 2rem 0;
+}
+
+/* Astra */
+.ast-container .sdh-ai-widget-shortcode {
+    margin: 2em 0;
+}
+
+/* GeneratePress */
+.inside-article .sdh-ai-widget-shortcode {
+    margin: 2em 0;
+}
+
+/* Улучшения доступности */
+.sdh-ai-widget-iframe:focus {
+    outline: 2px solid #4F7FFF;
+    outline-offset: 2px;
+}
+
+/* Принт стили */
+@media print {
+    #sdh-ai-floating-widget,
+    .sdh-ai-widget-shortcode {
+        display: none !important;
+    }
+}

@@ -1,0 +1,198 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SDH AI Assistant 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: sdh-ai-assistant.php:50
+msgid "SDH AI Assistant requires WordPress version 5.0 or higher."
+msgstr ""
+
+#: includes/class-sdh-ai-assistant.php:45
+msgid "SDH AI Assistant"
+msgstr ""
+
+#: includes/class-sdh-ai-assistant.php:91
+msgid "Settings"
+msgstr ""
+
+#: admin/admin-page.php:15
+msgid "SDH AI Assistant - Settings"
+msgstr ""
+
+#: admin/admin-page.php:26
+msgid "Connected"
+msgstr ""
+
+#: admin/admin-page.php:26
+msgid "Not Connected"
+msgstr ""
+
+#: admin/admin-page.php:31
+msgid "Settings"
+msgstr ""
+
+#: admin/admin-page.php:32
+msgid "Help"
+msgstr ""
+
+#: admin/admin-page.php:33
+msgid "Preview"
+msgstr ""
+
+#: admin/admin-page.php:42
+msgid "API Configuration"
+msgstr ""
+
+#: admin/admin-page.php:47
+msgid "API Server URL"
+msgstr ""
+
+#: admin/admin-page.php:49
+msgid "URL of your SDH AI Assistant backend server"
+msgstr ""
+
+#: admin/admin-page.php:53
+msgid "Test Connection"
+msgstr ""
+
+#: admin/admin-page.php:58
+msgid "Widget Configuration"
+msgstr ""
+
+#: admin/admin-page.php:63
+msgid "Default Agent"
+msgstr ""
+
+#: admin/admin-page.php:66
+msgid "DevOps Specialist"
+msgstr ""
+
+#: admin/admin-page.php:67
+msgid "Frontend Developer"
+msgstr ""
+
+#: admin/admin-page.php:68
+msgid "Backend Developer"
+msgstr ""
+
+#: admin/admin-page.php:69
+msgid "Support Agent"
+msgstr ""
+
+#: admin/admin-page.php:71
+msgid "Which AI agent to use by default"
+msgstr ""
+
+#: admin/admin-page.php:75
+msgid "Theme"
+msgstr ""
+
+#: admin/admin-page.php:78
+msgid "Light"
+msgstr ""
+
+#: admin/admin-page.php:79
+msgid "Dark"
+msgstr ""
+
+#: admin/admin-page.php:81
+msgid "Color theme for the widget"
+msgstr ""
+
+#: admin/admin-page.php:85
+msgid "Widget Width (px)"
+msgstr ""
+
+#: admin/admin-page.php:87
+msgid "Width of the widget in pixels"
+msgstr ""
+
+#: admin/admin-page.php:91
+msgid "Widget Height (px)"
+msgstr ""
+
+#: admin/admin-page.php:93
+msgid "Height of the widget in pixels"
+msgstr ""
+
+#: admin/admin-page.php:97
+msgid "Save Changes"
+msgstr ""
+
+#: admin/admin-page.php:105
+msgid "How to Use"
+msgstr ""
+
+#: admin/admin-page.php:108
+msgid "Using Shortcode"
+msgstr ""
+
+#: admin/admin-page.php:109
+msgid "The easiest way to add the AI assistant to your posts or pages:"
+msgstr ""
+
+#: admin/admin-page.php:112
+msgid "With parameters:"
+msgstr ""
+
+#: admin/admin-page.php:116
+msgid "Available Parameters"
+msgstr ""
+
+#: admin/admin-page.php:118
+msgid "<strong>agent</strong>: ID of the AI agent to use"
+msgstr ""
+
+#: admin/admin-page.php:119
+msgid "<strong>theme</strong>: light or dark"
+msgstr ""
+
+#: admin/admin-page.php:120
+msgid "<strong>width</strong>: Widget width in pixels"
+msgstr ""
+
+#: admin/admin-page.php:121
+msgid "<strong>height</strong>: Widget height in pixels"
+msgstr ""
+
+#: admin/admin-page.php:125
+msgid "Using HTML"
+msgstr ""
+
+#: admin/admin-page.php:126
+msgid "For direct embedding in templates or custom HTML:"
+msgstr ""
+
+#: admin/admin-page.php:130
+msgid "Using JavaScript"
+msgstr ""
+
+#: admin/admin-page.php:131
+msgid "For advanced integration with custom positioning:"
+msgstr ""
+
+#: admin/admin-page.php:138
+msgid "Widget Preview"
+msgstr ""
+
+#: admin/admin-page.php:139
+msgid "Preview how your widget will look on the site:"
+msgstr ""
+
+#: admin/admin-page.php:143
+msgid "Widget preview will appear here after configuring the API settings."
+msgstr ""
