@@ -2,22 +2,6 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-/**
- * Copyright 2024      // Connection closede LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GenAILiveClient } from '../../lib/genai-live-client';
 import { LiveConnectConfig } from '@google/genai';
@@ -40,7 +24,7 @@ export type UseLiveApiResults = {
   volume: number;
 };
 
-export function useLiveApi({
+export function useLiveApiWidget({
   apiKey,
   model = DEFAULT_LIVE_API_MODEL,
 }: {
@@ -59,17 +43,17 @@ export function useLiveApi({
   // register audio for streaming server -> speakers
   useEffect(() => {
     if (!audioStreamerRef.current) {
-      audioContext({ id: 'audio-out' }).then((audioCtx: AudioContext) => {
+      audioContext({ id: 'audio-out-widget' }).then((audioCtx: AudioContext) => {
         audioStreamerRef.current = new AudioStreamer(audioCtx);
         audioStreamerRef.current
-          .addWorklet<any>('vumeter-out', VolMeterWorket, (ev: any) => {
+          .addWorklet<any>('vumeter-out-widget', VolMeterWorket, (ev: any) => {
             setVolume(ev.data.volume);
           })
           .then(() => {
-            // Successfully added worklet
+            console.log('🎤 Widget: Audio worklet initialized');
           })
           .catch(err => {
-            console.error('Error adding worklet:', err);
+            console.error('❌ Widget: Error adding worklet:', err);
           });
       });
     }
@@ -77,32 +61,21 @@ export function useLiveApi({
 
   useEffect(() => {
     const onOpen = () => {
-      // Connection established
+      console.log('✅ Widget: Voice connection established');
       setConnected(true);
     };
 
     const onClose = (event?: any) => {
-      console.log('🔒 useLiveAPI: onClose event fired - connection closed');
-      console.log('🔒 useLiveAPI: Close event details:', {
-        code: event?.code,
-        reason: event?.reason,
-        wasClean: event?.wasClean
-      });
+      console.log('🔒 Widget: Voice connection closed');
       
       // Handle specific error codes
       if (event?.code === 1011) {
-        const errorMsg = 'QUOTA EXCEEDED: Your Google Gemini API key has exceeded its quota limits. Check Google Cloud Console billing and quotas.';
+        const errorMsg = 'QUOTA EXCEEDED: Your Google Gemini API key has exceeded its quota limits.';
         setLastError(errorMsg);
-        console.error('❌ QUOTA EXCEEDED: Your Google Gemini API key has exceeded its quota limits.');
-        console.error('💡 Solutions:');
-        console.error('   • Check your Google Cloud Console billing and quotas');
-        console.error('   • Wait for quota reset (usually daily for free tier)');
-        console.error('   • Enable billing for higher quotas');
-        console.error('   • Generate a new API key with a different project');
-        console.error('🔗 Google Cloud Console: https://console.cloud.google.com/');
+        console.error('❌ Widget: QUOTA EXCEEDED');
       } else if (event?.code && event.code !== 1000) {
         setLastError(`Connection closed with error code ${event.code}: ${event.reason}`);
-        console.warn(`⚠️ Connection closed with error code ${event.code}: ${event.reason}`);
+        console.warn(`⚠️ Widget: Connection closed with error code ${event.code}: ${event.reason}`);
       } else {
         setLastError(null); // Normal close
       }
@@ -111,7 +84,7 @@ export function useLiveApi({
     };
 
     const onError = (error?: any) => {
-      console.error('❌ useLiveAPI: onError event fired:', error);
+      console.error('❌ Widget: Voice error:', error);
     };
 
     const stopAudioStreamer = () => {
@@ -144,16 +117,16 @@ export function useLiveApi({
   }, [client]);
 
   const connect = useCallback(async () => {
-    // Connect function called
+    console.log('🎤 Widget: Connecting to voice...');
     
     if (!config) {
-      console.error('❌ useLiveAPI: No config provided');
+      console.error('❌ Widget: No config provided');
       throw new Error('config has not been set');
     }
     
     // Prevent multiple concurrent connections
     if (connected) {
-      // Already connected, skipping
+      console.log('🎤 Widget: Already connected, skipping');
       return;
     }
     
@@ -162,37 +135,36 @@ export function useLiveApi({
     
     try {
       // First ensure we're fully disconnected
-      // Ensuring clean disconnect...
       if (client) {
         client.disconnect();
         // Wait for disconnect to complete
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
-      // Starting connection with config
+      console.log('🎤 Widget: Starting connection...');
       const success = await client.connect(config);
       
       if (success) {
-        // Connection completed successfully
+        console.log('✅ Widget: Connection completed successfully');
         // Add a timeout to check if connection stays open
         setTimeout(() => {
           if (!connected) {
-            console.warn('⚠️ useLiveAPI: Connection completed but onOpen not fired after 2 seconds');
+            console.warn('⚠️ Widget: Connection completed but onOpen not fired after 2 seconds');
           }
         }, 2000);
       } else {
-        console.error('❌ useLiveAPI: client.connect() returned false');
+        console.error('❌ Widget: client.connect() returned false');
         throw new Error('Connection failed');
       }
     } catch (error) {
-      console.error('❌ useLiveAPI: Connection failed:', error);
+      console.error('❌ Widget: Connection failed:', error);
       setConnected(false);
       throw error;
     }
   }, [client, config, connected]);
 
   const disconnect = useCallback(async () => {
-    // Disconnecting...
+    console.log('🔒 Widget: Disconnecting voice...');
     try {
       if (client) {
         client.disconnect();
@@ -200,13 +172,13 @@ export function useLiveApi({
       setConnected(false);
       setVolume(0);
     } catch (error) {
-      console.error('❌ useLiveAPI: Disconnect error:', error);
+      console.error('❌ Widget: Disconnect error:', error);
       setConnected(false);
     }
   }, [client]);
 
   const reset = useCallback(() => {
-    // Resetting connection...
+    console.log('🔄 Widget: Resetting voice connection...');
     try {
       // Force disconnect
       if (client) {
@@ -225,24 +197,24 @@ export function useLiveApi({
       
       // Reinitialize audio context after a delay
       setTimeout(() => {
-        audioContext({ id: 'audio-out' }).then((audioCtx: AudioContext) => {
+        audioContext({ id: 'audio-out-widget' }).then((audioCtx: AudioContext) => {
           audioStreamerRef.current = new AudioStreamer(audioCtx);
           audioStreamerRef.current
-            .addWorklet<any>('vumeter-out', VolMeterWorket, (ev: any) => {
+            .addWorklet<any>('vumeter-out-widget', VolMeterWorket, (ev: any) => {
               setVolume(ev.data.volume);
             })
             .then(() => {
-              // Audio worklet reinitialized
+              console.log('🎤 Widget: Audio worklet reinitialized');
             })
             .catch(err => {
-              console.error('❌ useLiveAPI: Error reinitializing worklet:', err);
+              console.error('❌ Widget: Error reinitializing worklet:', err);
             });
         });
       }, 1000);
       
-      // Reset completed
+      console.log('✅ Widget: Reset completed');
     } catch (error) {
-      console.error('❌ useLiveAPI: Reset error:', error);
+      console.error('❌ Widget: Reset error:', error);
     }
   }, [client]);
 

@@ -93,16 +93,12 @@ function ControlTray({ children }: ControlTrayProps) {
             ref={connectButtonRef}
             className={cn('action-button connect-toggle', { connected })}
             onClick={() => {
-              console.log('🎮 ControlTray: Play button clicked', { 
-                connected, 
-                hasConnect: typeof connect === 'function',
-                hasDisconnect: typeof disconnect === 'function'
-              });
+              // Play button clicked
               if (connected) {
-                console.log('🔌 Disconnecting...');
+                // Disconnecting...
                 disconnect();
               } else {
-                console.log('🔌 Connecting...');
+                // Connecting...
                 connect();
               }
             }}

@@ -347,7 +347,4 @@
         sdhAiWidget.init();
     }
     
-    // Глобальный доступ для отладки
-    window.sdhAi = sdhAiWidget;
-    
 })();

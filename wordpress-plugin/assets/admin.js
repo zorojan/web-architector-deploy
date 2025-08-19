@@ -310,7 +310,4 @@
         SdhAiAdmin.init();
     });
 
-    // Экспорт в глобальную область для отладки
-    window.SdhAiAdmin = SdhAiAdmin;
-
 })(jQuery);

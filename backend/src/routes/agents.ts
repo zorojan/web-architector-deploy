@@ -291,11 +291,27 @@ router.post('/:id/chat', async (req: any, res: express.Response) => {
 
     const db = getDatabase();
     const get = promisify(db.get.bind(db)) as any;
+    const all = promisify(db.all.bind(db)) as any;
 
-    // Get agent details
-    const agent = await get('SELECT * FROM agents WHERE id = ? AND is_active = 1', [id]) as any;
+    // Get agent details, with fallback to first available agent
+    let agent = await get('SELECT * FROM agents WHERE id = ? AND is_active = 1', [id]) as any;
+    
     if (!agent) {
-      return res.status(404).json({ error: 'Agent not found' });
+      // Try to get first available agent as fallback
+      const agents = await all('SELECT * FROM agents WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1') as any[];
+      if (agents.length > 0) {
+        agent = agents[0];
+        console.log(`Agent ${id} not found, using fallback agent: ${agent.id}`);
+      } else {
+        // Create a default agent response if no agents found
+        agent = {
+          id: 'default',
+          name: 'AI Assistant',
+          personality: 'I am a helpful AI assistant.',
+          system_prompt: 'You are a helpful AI assistant.'
+        };
+        console.log('No agents found, using default agent');
+      }
     }
 
     // Get API key and message dialog model
@@ -382,6 +398,212 @@ router.post('/:id/chat', async (req: any, res: express.Response) => {
       if (status === 503) {
         return res.status(503).json({ 
           error: 'API service is temporarily unavailable. This usually means the API quota has been exceeded or the service is down. Please try again later or check your API key configuration.' 
+        });
+      } else if (status === 429) {
+        return res.status(429).json({ 
+          error: 'Too many requests. Please wait a moment before trying again.' 
+        });
+      } else if (status === 401) {
+        return res.status(401).json({ 
+          error: 'Invalid API key. Please check your Gemini API key configuration in the admin panel.' 
+        });
+      } else if (status === 400) {
+        const errorMessage = error.response?.data?.error?.message || 'Invalid request. Please check your message and try again.';
+        console.error('400 Bad Request - Error message:', errorMessage);
+        return res.status(400).json({ 
+          error: errorMessage
+        });
+      }
+      
+      const message = error.response?.data?.error?.message || 'Failed to get response from AI';
+      return res.status(status).json({ error: message });
+    }
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// General chat endpoint that accepts agentId in body
+router.post('/chat', async (req: any, res: express.Response) => {
+  try {
+    const { message, agentId, history = [] } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const db = getDatabase();
+    const get = promisify(db.get.bind(db)) as any;
+    const all = promisify(db.all.bind(db)) as any;
+
+    // Get agent details, with fallback to first available agent
+    let agent = null;
+    
+    if (agentId && agentId !== 'default') {
+      agent = await get('SELECT * FROM agents WHERE id = ? AND is_active = 1', [agentId]) as any;
+    }
+    
+    if (!agent) {
+      // Try to get first available agent as fallback
+      const agents = await all('SELECT * FROM agents WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1') as any[];
+      if (agents.length > 0) {
+        agent = agents[0];
+        console.log(`Agent ${agentId} not found, using fallback agent: ${agent.id}`);
+      } else {
+        // Create a default agent response if no agents found
+        agent = {
+          id: 'default',
+          name: 'AI Assistant',
+          personality: 'I am a helpful AI assistant.',
+          system_prompt: 'You are a helpful AI assistant.'
+        };
+        console.log('No agents found, using default agent');
+      }
+    }
+
+    console.log(`Processing chat for agent: ${agent.id} (${agent.name})`);
+
+    // Build system prompt
+    let systemPrompt = agent.personality || 'You are a helpful AI assistant.';
+    if (agent.knowledge_base) {
+      systemPrompt += `\n\nKnowledge Base: ${agent.knowledge_base}`;
+    }
+    if (agent.system_prompt) {
+      systemPrompt += `\n\nAdditional Instructions: ${agent.system_prompt}`;
+    }
+
+    // Prepare messages for Gemini
+    const messages = [];
+    
+    // Add system prompt
+    messages.push({
+      role: 'user',
+      parts: [{ text: `System: ${systemPrompt}` }]
+    });
+    
+    // Add conversation history if provided
+    if (history && history.length > 0) {
+      history.forEach((msg: any) => {
+        if (msg.role === 'user') {
+          messages.push({
+            role: 'user',
+            parts: [{ text: msg.content }]
+          });
+        } else if (msg.role === 'assistant') {
+          messages.push({
+            role: 'model',
+            parts: [{ text: msg.content }]
+          });
+        }
+      });
+    }
+    
+    // Add current user message
+    messages.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    // Get Gemini API key from settings
+    const settings = await all('SELECT * FROM settings') as any[];
+    const geminiApiKeySetting = settings.find((s: any) => s.key === 'gemini_api_key');
+    
+    if (!geminiApiKeySetting || !geminiApiKeySetting.value || geminiApiKeySetting.value === 'your-api-key-here') {
+      console.error('Gemini API key not configured');
+      return res.status(500).json({ 
+        error: 'AI service is not configured. Please set up the Gemini API key in the admin panel.' 
+      });
+    }
+
+    const apiKey = geminiApiKeySetting.value;
+
+    // Call Gemini API
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: messages,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(`Gemini API error: ${response.status} - ${errorData}`);
+      
+      const status = response.status;
+      if (status === 503) {
+        return res.status(503).json({ 
+          error: 'AI service is temporarily unavailable. This usually means the API quota has been exceeded or the service is down. Please try again later or check your API key configuration.' 
+        });
+      } else if (status === 429) {
+        return res.status(429).json({ 
+          error: 'Too many requests. Please wait a moment before trying again.' 
+        });
+      } else if (status === 401) {
+        return res.status(401).json({ 
+          error: 'Invalid API key. Please check your Gemini API key configuration in the admin panel.' 
+        });
+      } else if (status === 400) {
+        const errorMessage = errorData || 'Invalid request. Please check your message and try again.';
+        console.error('400 Bad Request - Error message:', errorMessage);
+        return res.status(400).json({ 
+          error: errorMessage
+        });
+      }
+      
+      return res.status(status).json({ error: 'Failed to get response from AI' });
+    }
+
+    const data = await response.json() as any;
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      console.error('Unexpected response format from Gemini:', data);
+      return res.status(500).json({ error: 'Unexpected response format from AI service' });
+    }
+
+    const assistantResponse = data.candidates[0].content.parts[0].text;
+    
+    res.json({ 
+      response: assistantResponse,
+      agent: {
+        id: agent.id,
+        name: agent.name
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Chat error:', error);
+    
+    if (error.response) {
+      const status = error.response.status;
+      if (status === 503) {
+        return res.status(503).json({ 
+          error: 'AI service is temporarily unavailable. This usually means the API quota has been exceeded or the service is down. Please try again later or check your API key configuration.' 
         });
       } else if (status === 429) {
         return res.status(429).json({ 

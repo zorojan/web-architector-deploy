@@ -6,7 +6,6 @@ import { initDatabase, getDatabase } from './database/init';
 import settingsRoutes from './routes/settings';
 import agentsRoutes from './routes/agents';
 import authRoutes from './routes/auth';
-import testRoutes from './routes/test';
 
 dotenv.config();
 
@@ -26,7 +25,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/agents', agentsRoutes);
-app.use('/api/test', testRoutes);
 
 // Public endpoint for API key (needed by frontend)
 app.get('/api/public/apikey', async (req, res) => {
@@ -69,6 +67,57 @@ app.get('/api/public/agents', async (req, res) => {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Serve widget.js dynamically
+app.get('/widget.js', (req, res) => {
+  const widgetScript = `
+(function() {
+  // Default configuration
+  var defaultConfig = {
+    agentId: 'ai-advisor',
+    theme: 'light',
+    position: 'bottom-right',
+    title: 'AI Assistant',
+    placeholder: 'Type your message...',
+    primaryColor: '#007bff',
+    apiUrl: '${process.env.API_URL || 'http://localhost:3001'}',
+    widgetUrl: '${process.env.WIDGET_URL || 'http://localhost:5173'}'
+  };
+
+  // Merge with any global SDH config
+  var config = window.SDH_WIDGET_CONFIG ? 
+    Object.assign({}, defaultConfig, window.SDH_WIDGET_CONFIG) : 
+    defaultConfig;
+  
+  // Create iframe
+  var iframe = document.createElement('iframe');
+  var params = new URLSearchParams(config);
+  iframe.src = config.widgetUrl + '/widget.html?' + params.toString();
+  iframe.width = '400';
+  iframe.height = '600';
+  iframe.frameBorder = '0';
+  iframe.title = config.title;
+  iframe.allow = 'microphone';
+  iframe.style.cssText = 'position: fixed; ' + 
+    (config.position.includes('bottom') ? 'bottom' : 'top') + ': 20px; ' +
+    (config.position.includes('right') ? 'right' : 'left') + ': 20px; ' +
+    'z-index: 9999; border-radius: 12px; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);';
+  
+  // Add to DOM when ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.appendChild(iframe);
+    });
+  } else {
+    document.body.appendChild(iframe);
+  }
+})();
+`;
+
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.send(widgetScript);
 });
 
 // Error handling middleware

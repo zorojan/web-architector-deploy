@@ -94,7 +94,6 @@ function App() {
     const loadAgentsFromDatabase = async () => {
       try {
         const agentsList = await api.getAgents();
-        console.log('Loaded agents from database:', agentsList);
         
         // Convert database agents to frontend agent format
         const formattedAgents = agentsList.map(dbAgent => ({

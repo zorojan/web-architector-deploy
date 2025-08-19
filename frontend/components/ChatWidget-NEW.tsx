@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VoiceChatWidget } from './VoiceChatWidget';
+import { LiveAPIProviderWidget } from '../contexts/LiveAPIContextWidget';
+import { useLiveAPIContextWidget } from '../contexts/LiveAPIContextWidget';
+import BasicFaceWidget from './demo/basic-face/BasicFaceWidget';
 import './ChatWidget.css';
 
 interface Message {
@@ -17,23 +19,128 @@ interface ChatWidgetProps {
   placeholder?: string;
   primaryColor?: string;
   apiUrl?: string;
-  geminiApiKey?: string; // Опциональный параметр для фоллбэка
+  geminiApiKey?: string;
 }
 
 type DialogMode = 'text' | 'voice' | null;
 
-// Функция для получения API ключа из backend (как в основном фронтенде)
-async function fetchApiKey(apiUrl: string) {
-  try {
-    const response = await fetch(`${apiUrl}/api/public/apikey`);
-    if (!response.ok) throw new Error('Failed to fetch API key');
-    const data = await response.json();
-    return data.apiKey || '';
-  } catch (error) {
-    console.error('Error fetching API key from backend:', error);
-    return '';
-  }
-}
+// Voice Chat Component
+const VoiceChatWidget: React.FC<{ agent: any }> = ({ agent }) => {
+  const [isListening, setIsListening] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const {
+    client,
+    connected,
+    connect,
+    disconnect,
+    setConfig,
+    volume
+  } = useLiveAPIContextWidget();
+
+  useEffect(() => {
+    if (agent && !connected) {
+      console.log('🎤 Widget: Setting up voice config for agent:', agent.name);
+      
+      const voiceConfig = {
+        model: 'models/gemini-2.0-flash-exp',
+        generationConfig: {
+          candidateCount: 1,
+          maxOutputTokens: 8192,
+          temperature: 0.9,
+          topK: 16,
+          topP: 0.95,
+        },
+        systemInstruction: {
+          role: 'user',
+          parts: [
+            {
+              text: `${agent.personality || 'You are a helpful AI assistant.'}\n\nPLEASE KEEP RESPONSES VERY SHORT AND CONVERSATIONAL. This is a voice chat, so speak naturally and briefly like in a real conversation.`
+            }
+          ]
+        },
+        tools: [
+          { googleSearch: {} }
+        ],
+      };
+      
+      setConfig(voiceConfig);
+    }
+  }, [agent, connected, setConfig]);
+
+  const handleVoiceToggle = async () => {
+    try {
+      if (connected && isListening) {
+        console.log('🔇 Widget: Stopping voice chat');
+        setIsListening(false);
+        await disconnect();
+      } else if (!connected) {
+        console.log('🎤 Widget: Starting voice chat');
+        setIsConnecting(true);
+        setIsListening(true);
+        await connect();
+        setIsConnecting(false);
+      }
+    } catch (error) {
+      console.error('❌ Widget: Voice error:', error);
+      setIsConnecting(false);
+      setIsListening(false);
+    }
+  };
+
+  return (
+    <div className="voice-chat-widget">
+      <div className="voice-header">
+        <h4>🎤 Voice Chat with {agent?.name || 'AI Assistant'}</h4>
+        <p>Click the speaking emoji to start talking!</p>
+      </div>
+      
+      <div className="voice-face-container">
+        <BasicFaceWidget
+          canvasRef={canvasRef}
+          radius={50}
+          color="#007bff"
+          isActive={connected && volume > 0}
+        />
+      </div>
+      
+      <div className="voice-controls">
+        <button
+          className={`voice-button ${isListening ? 'listening' : ''} ${isConnecting ? 'connecting' : ''}`}
+          onClick={handleVoiceToggle}
+          disabled={isConnecting}
+        >
+          {isConnecting ? (
+            '⏳'
+          ) : connected && isListening ? (
+            '🔇'
+          ) : (
+            '🎤'
+          )}
+        </button>
+        <div className="voice-status">
+          {isConnecting ? (
+            'Connecting...'
+          ) : connected && isListening ? (
+            'Listening... Click to stop'
+          ) : (
+            'Click to start voice chat'
+          )}
+        </div>
+      </div>
+      
+      {volume > 0 && (
+        <div className="volume-indicator">
+          <div 
+            className="volume-bar" 
+            style={{ width: `${Math.min(volume * 100, 100)}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ChatWidget: React.FC<ChatWidgetProps> = ({
   agentId,
@@ -43,7 +150,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   placeholder = 'Type your message...',
   primaryColor = '#007bff',
   apiUrl = 'http://localhost:3001',
-  geminiApiKey // Не используется, только для совместимости
+  geminiApiKey
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
@@ -52,35 +159,28 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [agent, setAgent] = useState<any>(null);
   const [showIntroduction, setShowIntroduction] = useState(true);
-  const [apiKey, setApiKey] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Загружаем API ключ точно как во frontend
-  useEffect(() => {
-    const loadApiKey = async () => {
+  // Get Gemini API key from URL params if not provided
+  const getGeminiApiKey = () => {
+    if (geminiApiKey) return geminiApiKey;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const keyFromUrl = urlParams.get('geminiApiKey');
+    if (keyFromUrl) return keyFromUrl;
+    
+    // Try to get from parent window
+    if (window.parent !== window) {
       try {
-        setLoading(true);
-        setError(null);
-        const key = await fetchApiKey(apiUrl);
-        
-        if (!key) {
-          setError('API ключ не настроен в админ панели');
-        } else {
-          setApiKey(key);
-          console.log('🎤 Widget: API key loaded successfully');
-        }
-      } catch (err) {
-        console.error('🎤 Widget: Failed to load API key:', err);
-        setError('Не удалось загрузить настройки');
-      } finally {
-        setLoading(false);
+        const parentParams = new URLSearchParams(window.parent.location.search);
+        return parentParams.get('geminiApiKey') || 'demo-key';
+      } catch (e) {
+        return 'demo-key';
       }
-    };
-
-    loadApiKey();
-  }, [apiUrl]);
+    }
+    
+    return 'demo-key';
+  };
 
   // Load agent configuration
   useEffect(() => {
@@ -136,51 +236,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-color', primaryColor);
   }, [primaryColor]);
-
-  // Show loading if API key is still loading
-  if (loading) {
-    return (
-      <div className={`chat-widget ${theme} ${position}`}>
-        <button className="chat-toggle" disabled>
-          ⏳
-        </button>
-        <div className="chat-window open">
-          <div className="chat-header">
-            <h3>Loading...</h3>
-          </div>
-          <div className="chat-messages">
-            <div className="loading-spinner"></div>
-            <p>Loading configuration...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error if API key couldn't be loaded
-  if (error) {
-    return (
-      <div className={`chat-widget ${theme} ${position}`}>
-        <button className="chat-toggle" disabled>
-          ⚠️
-        </button>
-        <div className="chat-window open">
-          <div className="chat-header">
-            <h3>Configuration Error</h3>
-          </div>
-          <div className="chat-messages">
-            <div className="voice-error">
-              <p>⚠️ {error}</p>
-              <p>Configure API key in admin panel:</p>
-              <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer">
-                Open Admin Panel
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const startDialog = (mode: DialogMode) => {
     setDialogMode(mode);
@@ -359,22 +414,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           )}
 
           {!showIntroduction && dialogMode === 'voice' && (
-            loading ? (
-              <div className="voice-loading">
-                <div className="loading-spinner"></div>
-                <p>Loading voice configuration...</p>
-              </div>
-            ) : apiKey ? (
-              <VoiceChatWidget agent={agent} geminiApiKey={apiKey} />
-            ) : (
-              <div className="voice-error">
-                <p>⚠️ Voice mode requires API key configuration</p>
-                <p>Configure API key in admin panel: <a href="http://localhost:3000" target="_blank">Open Admin</a></p>
-                <button onClick={() => setShowIntroduction(true)}>
-                  Switch to text mode
-                </button>
-              </div>
-            )
+            <VoiceChatWidget agent={agent} />
           )}
           
           <div ref={messagesEndRef} />
@@ -441,8 +481,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     </div>
   );
 
-  // Wrap with LiveAPI provider if voice is used  
-  return widgetContent;
+  // Wrap with LiveAPI provider if voice is used
+  const apiKey = getGeminiApiKey();
+  
+  return (
+    <LiveAPIProviderWidget apiKey={apiKey}>
+      {widgetContent}
+    </LiveAPIProviderWidget>
+  );
 };
 
 export default ChatWidget;

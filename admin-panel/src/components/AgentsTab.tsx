@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { agentsAPI } from '@/lib/api'
-import { AVAILABLE_VOICES, AGENT_COLORS } from '@/shared/types'
+import { agentsAPI } from '../lib/api'
+import { AVAILABLE_VOICES, AGENT_COLORS } from '../../../shared/types'
 
 export default function AgentsTab() {
   const [showCreateForm, setShowCreateForm] = useState(false)

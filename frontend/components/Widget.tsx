@@ -9,7 +9,8 @@ const Widget: React.FC = () => {
     title: 'AI Assistant',
     placeholder: 'Type your message...',
     primaryColor: '#007bff',
-    apiUrl: 'http://localhost:3001'
+    apiUrl: 'http://localhost:3001',
+    geminiApiKey: 'demo-key'
   });
 
   useEffect(() => {
@@ -23,7 +24,8 @@ const Widget: React.FC = () => {
       title: urlParams.get('title') || 'AI Assistant',
       placeholder: urlParams.get('placeholder') || 'Type your message...',
       primaryColor: urlParams.get('primaryColor') || '#007bff',
-      apiUrl: urlParams.get('apiUrl') || 'http://localhost:3001'
+      apiUrl: urlParams.get('apiUrl') || 'http://localhost:3001',
+      geminiApiKey: urlParams.get('geminiApiKey') || 'demo-key'
     };
 
     setConfig(newConfig);
@@ -90,6 +92,7 @@ const Widget: React.FC = () => {
         placeholder={config.placeholder}
         primaryColor={config.primaryColor}
         apiUrl={config.apiUrl}
+        geminiApiKey={config.geminiApiKey}
       />
     </div>
   );

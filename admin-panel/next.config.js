@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // Отключаем для лучшего Hot Reload
-  swcMinify: false, // Отключаем минификацию в dev режиме
-  generateEtags: false, // Отключаем ETags
-  poweredByHeader: false, // Убираем X-Powered-By
+  reactStrictMode: false,
+  swcMinify: false,
+  generateEtags: false,
+  poweredByHeader: false,
   
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
-      // Отключаем кэширование webpack
       config.cache = false;
       config.resolve.fallback = {
         ...config.resolve.fallback,
