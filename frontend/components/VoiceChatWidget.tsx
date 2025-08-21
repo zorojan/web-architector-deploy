@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Modality } from '@google/genai';
+import { AudioRecorder } from '../lib/audio-recorder';
 import { LiveAPIProviderWidget } from '../contexts/LiveAPIContextWidget';
 import { useLiveAPIContextWidget } from '../contexts/LiveAPIContextWidget';
 import BasicFaceWidget from './demo/basic-face/BasicFaceWidget';
@@ -10,8 +12,11 @@ interface VoiceChatWidgetProps {
 
 // Voice Chat Component (внутри провайдера)
 const VoiceChatWidgetInner: React.FC<{ agent: any }> = ({ agent }) => {
-  const [isListening, setIsListening] = useState(false);
+  const [muted, setMuted] = useState(true); // Start muted
   const [isConnecting, setIsConnecting] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [audioRecorder] = useState(() => new AudioRecorder());
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const {
@@ -20,7 +25,8 @@ const VoiceChatWidgetInner: React.FC<{ agent: any }> = ({ agent }) => {
     connect,
     disconnect,
     setConfig,
-    volume
+    volume,
+    lastError: apiError
   } = useLiveAPIContextWidget();
 
   useEffect(() => {
@@ -28,48 +34,74 @@ const VoiceChatWidgetInner: React.FC<{ agent: any }> = ({ agent }) => {
       console.log('🎤 Widget: Setting up voice config for agent:', agent.name);
       
       const voiceConfig = {
-        model: 'models/gemini-2.0-flash-exp',
-        generationConfig: {
-          candidateCount: 1,
-          maxOutputTokens: 8192,
-          temperature: 0.9,
-          topK: 16,
-          topP: 0.95,
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: agent.voice || 'Orus' },
+          },
         },
         systemInstruction: {
-          role: 'user',
           parts: [
             {
               text: `${agent.personality || 'You are a helpful AI assistant.'}\n\nPLEASE KEEP RESPONSES VERY SHORT AND CONVERSATIONAL. This is a voice chat, so speak naturally and briefly like in a real conversation.`
             }
           ]
-        },
-        tools: [
-          { googleSearch: {} }
-        ],
+        }
       };
       
       setConfig(voiceConfig);
     }
   }, [agent, connected, setConfig]);
 
+  // Handle audio recording
+  useEffect(() => {
+    const onData = (base64: string) => {
+      client.sendRealtimeInput([
+        {
+          mimeType: 'audio/pcm;rate=16000',
+          data: base64,
+        },
+      ]);
+    };
+    
+    if (connected && !muted && audioRecorder) {
+      console.log('🎤 Widget: Starting audio recording');
+      audioRecorder.on('data', onData).start();
+    } else {
+      console.log('🎤 Widget: Stopping audio recording');
+      audioRecorder.stop();
+    }
+    
+    return () => {
+      audioRecorder.off('data', onData);
+    };
+  }, [connected, client, muted, audioRecorder]);
+
+  // Main voice toggle function like in frontend
   const handleVoiceToggle = async () => {
     try {
       if (connected && isListening) {
         console.log('🔇 Widget: Stopping voice chat');
         setIsListening(false);
+        setMuted(true);
         await disconnect();
       } else if (!connected) {
         console.log('🎤 Widget: Starting voice chat');
         setIsConnecting(true);
         setIsListening(true);
         await connect();
+        // Auto-start voice recording after connection
+        setTimeout(() => {
+          setMuted(false);
+          console.log('🎤 Widget: Voice chat started - ready to listen');
+        }, 1000);
         setIsConnecting(false);
       }
     } catch (error) {
       console.error('❌ Widget: Voice error:', error);
       setIsConnecting(false);
       setIsListening(false);
+      setLastError('Connection failed. Please try again.');
     }
   };
 
@@ -80,10 +112,16 @@ const VoiceChatWidgetInner: React.FC<{ agent: any }> = ({ agent }) => {
         <p>Click the speaking emoji to start talking!</p>
       </div>
       
+      {lastError && (
+        <div className="voice-error">
+          <p>⚠️ {lastError}</p>
+        </div>
+      )}
+      
       <div className="voice-face-container">
         <BasicFaceWidget
           canvasRef={canvasRef}
-          radius={50}
+          radius={80} 
           color="#007bff"
           isActive={connected && volume > 0}
         />

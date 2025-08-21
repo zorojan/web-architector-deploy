@@ -879,3 +879,152 @@
 .chat-widget.dark .volume-indicator {
   background: #4a5568;
 }
+
+/* Voice Error Styles */
+.voice-error {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.voice-error p {
+  margin: 0 0 8px 0;
+  color: #856404;
+  font-size: 14px;
+}
+
+.retry-button, .connect-button {
+  background: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retry-button:hover, .connect-button:hover {
+  background: #0056b3;
+}
+
+.retry-button:disabled, .connect-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.disconnect-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #dc3545;
+  background: #dc3545;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  margin-left: 12px;
+}
+
+.disconnect-button:hover {
+  background: #c82333;
+  border-color: #c82333;
+  transform: scale(1.05);
+}
+
+/* Dark theme for error messages */
+.chat-widget.dark .voice-error {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+.chat-widget.dark .voice-error p {
+  color: #e2e8f0;
+}
+
+/* Enhanced Voice Interface */
+.voice-face-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0 !important;
+  flex: 1;
+  min-height: 180px !important;
+}
+
+.voice-control-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+}
+
+.voice-toggle-button {
+  background: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voice-toggle-button:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.voice-toggle-button.active {
+  background: #dc3545;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  animation: pulse-gentle 2s infinite;
+}
+
+.voice-toggle-button.active:hover {
+  background: #c82333;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.disconnect-button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: 2px solid #6c757d !important;
+  background: #6c757d !important;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 14px !important;
+  margin-left: 0 !important;
+}
+
+.disconnect-button:hover {
+  background: #5a6268 !important;
+  border-color: #5a6268 !important;
+  transform: scale(1.05);
+}
