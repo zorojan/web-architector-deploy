@@ -191,32 +191,50 @@ http://localhost:5173/widget.html?agentId=devops-specialist&theme=light&geminiAp
 
 ---
 
-## 🎤 ГОЛОСОВАЯ ФУНКЦИОНАЛЬНОСТЬ
+## 🎤 ГОЛОСОВАЯ ФУНКЦИОНАЛЬНОСТЬ (v4.1.0)
 
-### Компоненты:
+### Архитектура:
 ```
-VoiceChatWidget
+VoiceChatWidget (Click-to-start interface)
   ↓
-LiveAPIProviderWidget (контекст)
+handleVoiceToggle() → Manual connection control
   ↓
-useLiveAPIContextWidget (хук)
+LiveAPIProviderWidget (Gemini Live API context)
   ↓
-use-live-api-widget.ts (логика)
+useLiveAPIContextWidget (connection hook)
+  ↓ 
+use-live-api-widget.ts (WebSocket + Audio logic)
   ↓
-GenAILiveClient (WebSocket)
+GenAILiveClient (model: gemini-2.5-flash-preview-native-audio-dialog)
 ```
 
-### Состояния подключения:
-- `isConnecting` - процесс подключения
-- `connected` - успешное подключение
-- `isListening` - активное прослушивание
-- `volume` - уровень громкости (0-1)
-
-### Аудио цепочка:
+### Новая логика активации:
+```typescript
+// User clicks 🎤 Play button
+const handleVoiceToggle = async () => {
+  if (!connected) {
+    setIsConnecting(true);
+    await connect();           // Manual connection
+    setTimeout(() => {
+      setMuted(false);         // Start voice recording
+    }, 1000);
+  }
+};
 ```
-Микрофон → AudioStreamer → Gemini Live API → AudioStreamer → Динамики
-                ↓                                    ↓
-          Volume Meter                         BasicFaceWidget
+
+### Состояния интерфейса:
+- **🎤 Play button** - click to start voice chat
+- **⏳ Connecting...** - establishing connection
+- **🔇 Stop button** - click to end voice chat
+- **"Listening... Click to stop"** - active voice recording
+
+### Visual Feedback:
+```
+BasicFaceWidget (80px radius)
+  ↓
+isActive={connected && volume > 0}
+  ↓
+Animated смайлик responds to voice volume
 ```
 
 ---
@@ -236,12 +254,25 @@ GenAILiveClient (WebSocket)
 
 ### 2. **Голосовой режим не работает**
 **Причины:**
-- Отсутствует или неверный `geminiApiKey`
+- Отсутствует или неверный API ключ в админ панели
+- Пользователь не нажал кнопку 🎤 Play
 - Проблемы с доступом к микрофону
-- Ошибка WebSocket подключения
-- CORS проблемы
+- ошибка WebSocket подключения
 
 **Решение:**
+- Проверить API ключ: http://localhost:3000 → Settings
+- Инструкция пользователю: "Click 🎤 to start voice chat"
+- Проверить разрешения браузера на микрофон
+- Консоль браузера: искать ошибки с префиксом "🎤 Widget:"
+
+### 3. **Виджет зависает на "Connecting..."**
+**Причины (исправлено в v4.1.0):**
+- Старая логика auto-connection была удалена
+- Теперь только manual activation через кнопку
+
+**Решение:**
+- Обновиться до v4.1.0
+- Пользователь должен кликнуть 🎤 для активации
 - Добавить валидный `geminiApiKey` в URL
 - Проверить разрешения на микрофон
 - Проверить консоль браузера на ошибки

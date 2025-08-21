@@ -69,10 +69,21 @@ POST /api/agents/chat         # Send chat message
 3. Widget loads from backend API key endpoint
 
 ## 🎨 Voice Chat Features
-- **Gemini Live API** integration
-- **говорящий смайлик** (BasicFaceWidget) for visual feedback
-- **Real-time streaming** audio conversation
+- **Gemini Live API** integration with model `gemini-2.5-flash-preview-native-audio-dialog`
+- **Click-to-start interface** - user controls voice activation with 🎤 Play button
+- **говорящий смайлик** (BasicFaceWidget 80px) for visual feedback during conversation
+- **Real-time streaming** audio conversation with volume indicators
 - **Unified API key** management through backend
+- **No auto-connection** - prevents quota exhaustion and connection loops
+
+### Voice Chat Usage
+```
+1. http://localhost:5173/widget.html?agentId=devops-specialist
+2. Select "Voice Chat" mode
+3. Click 🎤 button → Status: "Listening... Click to stop"
+4. Speak naturally → AI responds with voice
+5. Click 🔇 to stop
+```
 
 ---
 *Generated: August 19, 2025 - For rapid project onboarding*

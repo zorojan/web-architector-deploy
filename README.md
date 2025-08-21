@@ -11,7 +11,11 @@ A powerful AI assistant platform with voice chat capabilities, built with React,
 
 ## Features
 
-- 🗣️ **Voice Chat**: Real-time voice conversations with AI using говорящий смайлик
+- 🗣️ **Voice Chat**: Real-time voice conversations with AI using Gemini Live API
+  - Click-to-start voice interface (🎤 Play button)
+  - Auto voice recording and playback
+  - Visual feedback with говорящий смайлик (80px animated face)
+  - Volume indicators and connection status
 - 💬 **Text Chat**: Traditional text-based conversations  
 - 🤖 **Multiple AI Agents**: Specialized agents for different use cases
 - 🎨 **Customizable Widget**: Embeddable chat widget for websites
@@ -72,7 +76,22 @@ Embeddable widget that can be integrated into any website:
 ```
 
 ### Voice Chat
-Real-time voice conversations with AI using Google's Gemini Live API and visual feedback through говорящий смайлик.
+Real-time voice conversations with AI using Google's Gemini Live API:
+
+**How to Use Voice Chat:**
+1. Open Widget Demo: http://localhost:5173/widget.html?agentId=devops-specialist
+2. Click "Voice Chat" mode in the introduction screen
+3. Click the 🎤 (Play) button to start voice conversation
+4. Wait for status "Listening... Click to stop"
+5. Start speaking naturally - AI will respond with voice
+6. Click 🔇 button to stop voice chat
+
+**Features:**
+- Click-to-start interface (no auto-connection)
+- Large animated face widget (80px говорящий смайлик)
+- Real-time volume indicators
+- Connection status feedback
+- Auto voice recording and playback
 
 ### Multi-Agent System
 Specialized AI agents for different purposes:
