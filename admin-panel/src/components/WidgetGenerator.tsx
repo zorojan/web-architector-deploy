@@ -32,7 +32,7 @@ const WidgetGenerator: React.FC = () => {
     title: 'AI Assistant',
     placeholder: 'Type your message...',
     primaryColor: '#007bff',
-    apiUrl: 'http://localhost:3001'
+    apiUrl: process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : 'http://localhost:3001'
   });
   const [generatedCode, setGeneratedCode] = useState('');
   const [copied, setCopied] = useState(false);
@@ -58,11 +58,12 @@ const WidgetGenerator: React.FC = () => {
       apiUrl: config.apiUrl
     });
 
-    const iframeUrl = `http://localhost:5173/widget.html?${params.toString()}`;
+  const widgetBase = process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:5173'
+  const iframeUrl = `${widgetBase.replace(/\/$/, '')}/widget.html?${params.toString()}`;
     
     const code = `<!-- SDH AI Assistant Widget -->
 <iframe
-  src="${iframeUrl}"
+  src="${(process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:5173').replace(/\/$/, '')}/widget.html?${params.toString()}"
   width="400"
   height="600"
   frameborder="0"
@@ -78,7 +79,7 @@ const WidgetGenerator: React.FC = () => {
     const selectedAgent = agents.find((agent: Agent) => agent.id === config.agentId);
     const title = config.title || selectedAgent?.name || 'AI Assistant';
     
-    const code = `<!-- SDH AI Assistant Widget Script -->
+  const code = `<!-- SDH AI Assistant Widget Script -->
 <script>
 (function() {
   var config = {
@@ -88,12 +89,12 @@ const WidgetGenerator: React.FC = () => {
     title: '${title}',
     placeholder: '${config.placeholder}',
     primaryColor: '${config.primaryColor}',
-    apiUrl: '${config.apiUrl}'
+  apiUrl: '${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : config.apiUrl}'
   };
   
   var iframe = document.createElement('iframe');
   var params = new URLSearchParams(config);
-  iframe.src = 'http://localhost:5173/widget.html?' + params.toString();
+  iframe.src = '${(process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:5173').replace(/\/$/, '')}/widget.html?' + params.toString();
   iframe.width = '400';
   iframe.height = '600';
   iframe.frameBorder = '0';
@@ -136,7 +137,7 @@ const WidgetGenerator: React.FC = () => {
       apiUrl: config.apiUrl
     });
 
-    const previewUrl = `http://localhost:5173/widget.html?${params.toString()}`;
+  const previewUrl = `${(process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:5173').replace(/\/$/, '')}/widget.html?${params.toString()}`;
     window.open(previewUrl, '_blank', 'width=400,height=600');
   };
 

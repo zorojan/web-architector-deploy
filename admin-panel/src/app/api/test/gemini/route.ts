@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET() {
   try {
     // Вызываем backend для тестирования Gemini API
-    const response = await fetch('http://localhost:3001/api/test/gemini', {
+  const backendBase = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : 'http://localhost:3001/api'
+  const response = await fetch(`${backendBase}/test/gemini`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

@@ -9,7 +9,7 @@ const Widget: React.FC = () => {
     title: 'AI Assistant',
     placeholder: 'Type your message...',
     primaryColor: '#007bff',
-    apiUrl: 'http://localhost:3001',
+  apiUrl: (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001',
     geminiApiKey: 'demo-key'
   });
 
@@ -17,14 +17,14 @@ const Widget: React.FC = () => {
     // Parse URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     
-    const newConfig = {
+  const newConfig = {
       agentId: urlParams.get('agentId') || '',
       theme: (urlParams.get('theme') as 'light' | 'dark') || 'light',
       position: (urlParams.get('position') as any) || 'bottom-right',
       title: urlParams.get('title') || 'AI Assistant',
       placeholder: urlParams.get('placeholder') || 'Type your message...',
       primaryColor: urlParams.get('primaryColor') || '#007bff',
-      apiUrl: urlParams.get('apiUrl') || 'http://localhost:3001',
+  apiUrl: urlParams.get('apiUrl') || ((import.meta.env.VITE_API_URL as string) || 'http://localhost:3001'),
       geminiApiKey: urlParams.get('geminiApiKey') || 'demo-key'
     };
 

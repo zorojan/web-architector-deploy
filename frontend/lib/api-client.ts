@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:3001/api'
+// Use VITE_API_URL at build time or fall back to localhost for local dev
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001/api'
 
 // Create axios instance
 const apiClient = axios.create({

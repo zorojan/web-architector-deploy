@@ -12,8 +12,8 @@ export default function WidgetTab() {
     title: 'AI Assistant',
     placeholder: 'Type your message...',
     primaryColor: '#007bff',
-    apiUrl: 'http://localhost:3001',
-    widgetUrl: 'http://localhost:5173'
+  apiUrl: process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : 'http://localhost:3001',
+  widgetUrl: process.env.NEXT_PUBLIC_WIDGET_URL ? process.env.NEXT_PUBLIC_WIDGET_URL.replace(/\/$/, '') : 'http://localhost:5173'
   });
 
   // Load available agents
@@ -142,8 +142,8 @@ export default function WidgetTab() {
               </div>
 
               <div className="flex space-x-3">
-                <a 
-                  href="/sdh-ai-assistant-wordpress-plugin.zip" 
+          <a 
+            href="/sdh-ai-assistant-wordpress-plugin.zip" 
                   className="btn btn-primary flex-1 text-center"
                   download
                 >

@@ -31,8 +31,8 @@ import { useUI, useAgent } from './lib/state';
 import { api } from './lib/api-client';
 import { useState, useEffect } from 'react';
 
-// API клиент для получения данных
-const API_BASE_URL = 'http://localhost:3001/api';
+// API client (uses Vite env var at build/runtime, falls back to localhost for dev)
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001/api';
 
 // Функция для получения настроек
 async function fetchApiKey() {
@@ -147,7 +147,7 @@ function App() {
               <p className="text-red-600 mb-4">{error || 'API ключ не настроен'}</p>
               <p className="text-gray-600 mb-4">Настройте Gemini API ключ в админ панели:</p>
               <a 
-                href="http://localhost:3000" 
+                href={import.meta.env.VITE_ADMIN_URL || 'http://localhost:3000'} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"

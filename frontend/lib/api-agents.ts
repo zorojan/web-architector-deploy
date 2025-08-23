@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { Agent } from './presets/agents';
 
-// API клиент
-const API_BASE_URL = 'http://localhost:3001/api';
+// API client (Vite env var or localhost fallback)
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001/api';
 
 // Функция для получения агентов из API
 async function fetchAgentsFromAPI(): Promise<Agent[]> {

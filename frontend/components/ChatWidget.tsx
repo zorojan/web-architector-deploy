@@ -42,7 +42,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   title = 'AI Assistant',
   placeholder = 'Type your message...',
   primaryColor = '#007bff',
-  apiUrl = 'http://localhost:3001',
+  apiUrl = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001',
   geminiApiKey // Не используется, только для совместимости
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -171,8 +171,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           <div className="chat-messages">
             <div className="voice-error">
               <p>⚠️ {error}</p>
-              <p>Configure API key in admin panel:</p>
-              <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer">
+                <p>Configure API key in admin panel:</p>
+              <a href={import.meta.env.VITE_ADMIN_URL || 'http://localhost:3000'} target="_blank" rel="noopener noreferrer">
                 Open Admin Panel
               </a>
             </div>

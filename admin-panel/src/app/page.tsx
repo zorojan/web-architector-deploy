@@ -108,9 +108,9 @@ function InnerAdminPanel() {
                   <p className="text-sm text-gray-600">React + Vite</p>
                 </div>
               </div>
-              <p className="text-gray-600 mb-4">Порт 5173 • Активен</p>
+              <p className="text-gray-600 mb-4">Frontend • Активен</p>
               <a 
-                href="http://localhost:5173" 
+                href={process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:5173'} 
                 target="_blank"
                 className="btn btn-primary w-full text-center hover:shadow-lg transition-all duration-200"
               >
@@ -131,9 +131,9 @@ function InnerAdminPanel() {
                   <p className="text-sm text-gray-600">Express + SQLite</p>
                 </div>
               </div>
-              <p className="text-gray-600 mb-4">Порт 3001 • Готов к работе</p>
+              <p className="text-gray-600 mb-4">Backend API • Готов к работе</p>
               <a 
-                href="http://localhost:3001/api/health" 
+                href={`${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : 'http://localhost:3001/api'}/health`} 
                 target="_blank"
                 className="btn btn-success w-full text-center hover:shadow-lg transition-all duration-200"
               >
