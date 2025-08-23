@@ -245,14 +245,16 @@ router.post('/:id/message', async (req: any, res: express.Response) => {
       }
     );
 
-    const response = geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+  const response = ((geminiResponse.data as any)?.candidates?.[0]?.content?.parts?.[0]?.text) || 'Sorry, I could not generate a response.';
 
     res.json({ response });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Send message error:', error);
-    if (axios.isAxiosError(error)) {
-      const status = error.response?.status || 500;
-      
+    // Check for axios-style response on the error object
+    const errResp = error?.response;
+    if (errResp) {
+      const status = errResp?.status || 500;
+
       // Handle specific error cases
       if (status === 503) {
         return res.status(503).json({ 
@@ -271,8 +273,8 @@ router.post('/:id/message', async (req: any, res: express.Response) => {
           error: 'Invalid request. Please check your message and try again.' 
         });
       }
-      
-      const message = error.response?.data?.error?.message || 'Failed to get response from AI';
+
+      const message = errResp?.data?.error?.message || 'Failed to get response from AI';
       return res.status(status).json({ error: message });
     }
     res.status(500).json({ error: 'Failed to send message' });
@@ -378,21 +380,22 @@ router.post('/:id/chat', async (req: any, res: express.Response) => {
       }
     );
 
-    const response = geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+  const response = ((geminiResponse.data as any)?.candidates?.[0]?.content?.parts?.[0]?.text) || 'Sorry, I could not generate a response.';
 
-    res.json({ response });
-  } catch (error) {
+  res.json({ response });
+  } catch (error: any) {
     console.error('Send chat message error:', error);
-    if (axios.isAxiosError(error)) {
+    const errResp = error?.response;
+    if (errResp) {
       // Log detailed error information
       console.error('Gemini API Error Details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers
+        status: errResp?.status,
+        statusText: errResp?.statusText,
+        data: errResp?.data,
+        headers: errResp?.headers
       });
       
-      const status = error.response?.status || 500;
+      const status = errResp?.status || 500;
       
       // Handle specific error cases
       if (status === 503) {
@@ -408,14 +411,14 @@ router.post('/:id/chat', async (req: any, res: express.Response) => {
           error: 'Invalid API key. Please check your Gemini API key configuration in the admin panel.' 
         });
       } else if (status === 400) {
-        const errorMessage = error.response?.data?.error?.message || 'Invalid request. Please check your message and try again.';
+        const errorMessage = errResp?.data?.error?.message || 'Invalid request. Please check your message and try again.';
         console.error('400 Bad Request - Error message:', errorMessage);
         return res.status(400).json({ 
           error: errorMessage
         });
       }
       
-      const message = error.response?.data?.error?.message || 'Failed to get response from AI';
+      const message = errResp?.data?.error?.message || 'Failed to get response from AI';
       return res.status(status).json({ error: message });
     }
     res.status(500).json({ error: 'Failed to send message' });
@@ -581,12 +584,12 @@ router.post('/chat', async (req: any, res: express.Response) => {
 
     const data = await response.json() as any;
     
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      console.error('Unexpected response format from Gemini:', data);
+    const anyData = data as any;
+    if (!anyData.candidates || !anyData.candidates[0] || !anyData.candidates[0].content) {
+      console.error('Unexpected response format from Gemini:', anyData);
       return res.status(500).json({ error: 'Unexpected response format from AI service' });
     }
-
-    const assistantResponse = data.candidates[0].content.parts[0].text;
+    const assistantResponse = anyData.candidates[0].content.parts[0].text;
     
     res.json({ 
       response: assistantResponse,
@@ -599,8 +602,9 @@ router.post('/chat', async (req: any, res: express.Response) => {
   } catch (error: any) {
     console.error('Chat error:', error);
     
-    if (error.response) {
-      const status = error.response.status;
+    const errResp = error?.response;
+    if (errResp) {
+      const status = errResp.status;
       if (status === 503) {
         return res.status(503).json({ 
           error: 'AI service is temporarily unavailable. This usually means the API quota has been exceeded or the service is down. Please try again later or check your API key configuration.' 
@@ -614,14 +618,14 @@ router.post('/chat', async (req: any, res: express.Response) => {
           error: 'Invalid API key. Please check your Gemini API key configuration in the admin panel.' 
         });
       } else if (status === 400) {
-        const errorMessage = error.response?.data?.error?.message || 'Invalid request. Please check your message and try again.';
+        const errorMessage = errResp?.data?.error?.message || 'Invalid request. Please check your message and try again.';
         console.error('400 Bad Request - Error message:', errorMessage);
         return res.status(400).json({ 
           error: errorMessage
         });
       }
       
-      const message = error.response?.data?.error?.message || 'Failed to get response from AI';
+      const message = errResp?.data?.error?.message || 'Failed to get response from AI';
       return res.status(status).json({ error: message });
     }
     res.status(500).json({ error: 'Failed to send message' });

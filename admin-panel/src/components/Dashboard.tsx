@@ -5,7 +5,6 @@ import { useAuth } from '@/lib/auth-context'
 import SettingsTab from './SettingsTab'
 import AgentsTab from './AgentsTab'
 import WidgetGenerator from './WidgetGenerator'
-
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('settings')
   const { user, logout } = useAuth()
@@ -14,7 +13,6 @@ export default function Dashboard() {
     { id: 'settings', name: 'Настройки', icon: '⚙️' },
     { id: 'agents', name: 'Агенты', icon: '🤖' },
     { id: 'widgets', name: 'Виджеты', icon: '🔗' },
-    { id: 'test', name: 'Тест', icon: '🧪' },
   ]
 
   return (
@@ -74,8 +72,7 @@ export default function Dashboard() {
           <main className="flex-1">
             {activeTab === 'settings' && <SettingsTab />}
             {activeTab === 'agents' && <AgentsTab />}
-            {activeTab === 'widgets' && <WidgetGenerator />}
-            {activeTab === 'test' && <TestTab />}
+            {activeTab === 'widgets' && <WidgetGenerator />}        
           </main>
         </div>
       </div>
