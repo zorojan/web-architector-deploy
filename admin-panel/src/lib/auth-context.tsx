@@ -37,9 +37,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = Cookies.get('admin_token')
       if (token) {
         try {
-          const response = await authAPI.verify()
-          if (response.valid) {
-            setUser(response.user)
+          const response: any = await authAPI.verify()
+          if (response && response.valid) {
+            setUser(response.user as User)
           } else {
             Cookies.remove('admin_token')
           }
@@ -56,10 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await authAPI.login(username, password)
-      if (response.success) {
+      const response: any = await authAPI.login(username, password)
+      if (response && response.success) {
         Cookies.set('admin_token', response.token, { expires: 1 }) // 1 day
-        setUser(response.user)
+        setUser(response.user as User)
         return true
       }
       return false

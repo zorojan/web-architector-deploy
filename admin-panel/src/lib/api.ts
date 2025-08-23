@@ -13,7 +13,13 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = Cookies.get('admin_token')
+    // Ensure headers object exists before assigning
+    if (!config.headers) {
+      config.headers = {}
+    }
     if (token) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - axios types can be wide here; ensure Authorization header is set
       config.headers.Authorization = `Bearer ${token}`
     }
     return config

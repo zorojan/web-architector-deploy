@@ -1,15 +1,19 @@
 'use client'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { agentsAPI } from '../lib/api'
-import { AVAILABLE_VOICES, AGENT_COLORS } from '../../../shared/types'
+import { agentsAPI } from '@/lib/api'
+import { AVAILABLE_VOICES, AGENT_COLORS } from '@/shared/types'
 
 export default function AgentsTab() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingAgent, setEditingAgent] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
-  const { data: agents, isLoading } = useQuery('agents', agentsAPI.getAll)
+  // Явно указать тип возвращаемых данных и безопасный queryFn, приводящий результат к any[]
+  const { data: agents = [], isLoading } = useQuery<any[], Error>(
+    ['agents'],
+    () => agentsAPI.getAll() as Promise<any[]>
+  )
 
   const createMutation = useMutation(agentsAPI.create, {
     onSuccess: () => {
@@ -81,7 +85,8 @@ export default function AgentsTab() {
       {/* Edit Form */}
       {editingAgent && (
         <EditAgentForm
-          agent={agents?.find((a: any) => a.id === editingAgent)}
+          // безопасно найти агент — сначала убедиться, что agents это массив
+          agent={Array.isArray(agents) ? agents.find((a: any) => a.id === editingAgent) : undefined}
           onCancel={() => setEditingAgent(null)}
           onSubmit={(updates: any) => updateMutation.mutateAsync({ id: editingAgent, updates })}
           isLoading={updateMutation.isLoading}

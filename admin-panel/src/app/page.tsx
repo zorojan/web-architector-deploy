@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
 import { useAuth } from '../lib/auth-context';
+import Providers from './providers';
 import LoginForm from '../components/LoginForm';
 import AgentsTab from '../components/AgentsTab';
 import SettingsTab from '../components/SettingsTab';
@@ -10,6 +11,17 @@ import WidgetTab from '../components/WidgetTab';
 type TabType = 'agents' | 'settings' | 'widget';
 
 export default function AdminPanel() {
+  return (
+    <Providers>
+      <InnerAdminPanel />
+    </Providers>
+  )
+}
+
+// Avoid static prerender of this page which may reference client-only hooks
+export const dynamic = 'force-dynamic'
+
+function InnerAdminPanel() {
   const { isAuthenticated, loading, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('agents');
 

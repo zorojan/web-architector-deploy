@@ -9,7 +9,11 @@ export default function SettingsTab() {
   const [editValue, setEditValue] = useState('')
   const queryClient = useQueryClient()
 
-  const { data: settings, isLoading } = useQuery('settings', settingsAPI.getAll)
+  // Явно указать, что settings — массив, и задать дефолтное значение []
+  const { data: settings = [], isLoading } = useQuery<any[], Error>(
+    ['settings'],
+    () => settingsAPI.getAll() as Promise<any[]>
+  )
 
   const updateMutation = useMutation(
     ({ key, value }: { key: string; value: string }) => 
@@ -66,10 +70,10 @@ export default function SettingsTab() {
 
       <div className="p-6">
         <div className="space-y-6">
-          {settings?.map((setting: any) => (
-            <div key={setting.key} className="border-b border-gray-200 pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+          {Array.isArray(settings) ? settings.map((setting: any) => (
+             <div key={setting.key} className="border-b border-gray-200 pb-4">
+               <div className="flex items-center justify-between">
+                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {setting.description || setting.key}
                   </label>
@@ -117,7 +121,7 @@ export default function SettingsTab() {
                 Ключ: {setting.key} | Тип: {setting.type}
               </p>
             </div>
-          ))}
+          )) : null}
         </div>
 
         {settings?.length === 0 && (

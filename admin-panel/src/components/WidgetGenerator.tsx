@@ -20,7 +20,11 @@ interface WidgetConfig {
 }
 
 const WidgetGenerator: React.FC = () => {
-  const { data: agents = [], isLoading } = useQuery('agents', agentsAPI.getAll);
+  // Ensure the query function returns Promise<any[]> so `agents` is typed as an array
+  const { data: agents = [], isLoading } = useQuery<any[], Error>(
+    ['agents'],
+    () => agentsAPI.getAll() as Promise<any[]>
+  );
   const [config, setConfig] = useState<WidgetConfig>({
     agentId: '',
     theme: 'light',
@@ -35,8 +39,8 @@ const WidgetGenerator: React.FC = () => {
 
   // Auto-select first agent when agents are loaded
   useEffect(() => {
-    if (agents.length > 0 && !config.agentId) {
-      setConfig(prev => ({ ...prev, agentId: agents[0].id }));
+    if (Array.isArray(agents) && agents.length > 0 && !config.agentId) {
+      setConfig(prev => ({ ...prev, agentId: (agents[0] as any).id }));
     }
   }, [agents, config.agentId]);
 
