@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import SettingsTab from './SettingsTab'
 import AgentsTab from './AgentsTab'
-import TestTab from './TestTab'
 import WidgetGenerator from './WidgetGenerator'
 
 export default function Dashboard() {
