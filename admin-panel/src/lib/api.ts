@@ -15,7 +15,8 @@ api.interceptors.request.use(
     const token = Cookies.get('admin_token')
     // Ensure headers object exists before assigning
     if (!config.headers) {
-      config.headers = {}
+      // TypeScript's axios types require AxiosRequestHeaders; cast empty object to any to satisfy build
+      config.headers = {} as any
     }
     if (token) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

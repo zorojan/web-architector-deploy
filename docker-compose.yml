@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+
+  admin:
+    build:
+      context: .
+      dockerfile: admin-panel/Dockerfile
+      args:
+        - APP_DIR=admin-panel
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '5173:5173'
+    environment:
+      - NODE_ENV=production
